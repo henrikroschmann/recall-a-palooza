@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 interface SessionBrief {
   sessionId: string;
@@ -11,13 +11,13 @@ const SessionsList: React.FC = () => {
 
   useEffect(() => {
     const allKeys = Object.keys(localStorage);
-    const sessionKeys = allKeys.filter(key => key.includes('-session-'));
+    const sessionKeys = allKeys.filter((key) => key.includes("-session-"));
 
-    const retrievedSessions: SessionBrief[] = sessionKeys.map(key => {
-      const [deckId] = key.split('-session-');
+    const retrievedSessions: SessionBrief[] = sessionKeys.map((key) => {
+      const [deckId] = key.split("-session-");
       return {
         sessionId: key,
-        deckId: deckId
+        deckId: deckId,
       };
     });
 

@@ -1,24 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-
-interface SessionData {
-  question: string;
-  timeToAnswer: number;
-  correct: boolean;
-  rating: 'easy' | 'medium' | 'hard';
-}
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { SessionData } from "../types";
 
 const TrainingReport: React.FC = () => {
-  const { sessionId } = useParams<{ deckId: string, sessionId: string }>();
+  const { sessionId } = useParams<{ deckId: string; sessionId: string }>();
   const [sessionData, setSessionData] = useState<SessionData[]>([]);
 
   useEffect(() => {
-    const sessionDataString = localStorage.getItem(sessionId);
-    const retrievedSessionData: SessionData[] = sessionDataString ? JSON.parse(sessionDataString) : [];
+    const sessionDataString = localStorage.getItem(sessionId!);
+    const retrievedSessionData: SessionData[] = sessionDataString
+      ? (JSON.parse(sessionDataString) as SessionData[])
+      : [];
+
     setSessionData(retrievedSessionData);
-    
+
     // For debugging purposes
-    console.log('Session Data:', retrievedSessionData);
+    console.log("Session Data:", retrievedSessionData);
   }, [sessionId]);
 
   return (
@@ -39,7 +36,7 @@ const TrainingReport: React.FC = () => {
             <tr key={index}>
               <td>{data.question}</td>
               <td>{data.timeToAnswer}</td>
-              <td>{data.correct ? 'Yes' : 'No'}</td>
+              <td>{data.correct ? "Yes" : "No"}</td>
               <td>{data.rating}</td>
             </tr>
           ))}

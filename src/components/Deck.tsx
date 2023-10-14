@@ -1,11 +1,7 @@
 import React, { useState, FormEvent } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Link } from "react-router-dom";
-
-interface Flashcard {
-  question: string;
-  answer: string;
-}
+import { Flashcard } from "../types";
 
 const Deck: React.FC = () => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -17,10 +13,13 @@ const Deck: React.FC = () => {
     event.preventDefault();
     if (question && answer) {
       const newCard = {
-        id: uuidv4(), // This will generate a unique id for the card
+        id: uuidv4(),
         question,
         answer,
+        // interval: someDefaultValue,  // Add a default value here
+        // lastReviewed: someOtherDefaultValue // Add a default value here
       };
+
       setFlashcards((prevCards) => [...prevCards, newCard]);
       setQuestion("");
       setAnswer("");
