@@ -24,7 +24,8 @@ const TrainingSession: React.FC = () => {
       )
       .sort(
         (a: Flashcard, b: Flashcard) => (a.interval || 0) - (b.interval || 0)
-      );
+      )
+      .slice(0, 20);
 
     setDeckFlashcards(initialDeckFlashcards);
 
@@ -37,8 +38,27 @@ const TrainingSession: React.FC = () => {
 
   const handleRating = (rating: "easy" | "medium" | "hard") => {
     if (currentCard) {
-      const remainingCards = deckFlashcards.filter(
-        (card) => card.id !== currentCard.id
+      let newInterval;
+      switch (rating) {
+        case "easy":
+          newInterval = (currentCard.interval || 1) * 2;
+          break;
+        case "medium":
+          newInterval = (currentCard.interval || 1) * 1.5;
+          break;
+        case "hard":
+          newInterval = 1;
+          break;
+      }
+
+      const updatedCard = {
+        ...currentCard,
+        interval: newInterval,
+        lastReviewed: new Date(),
+      };
+
+      const remainingCards = deckFlashcards.map((card) =>
+        card.id === currentCard.id ? updatedCard : card
       );
 
       setDeckFlashcards(remainingCards);
