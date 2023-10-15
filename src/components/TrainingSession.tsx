@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Flashcard, SessionData } from "../types";
+import "./TrainingSession.css"
 
 const TrainingSession: React.FC = () => {
   const [currentCard, setCurrentCard] = useState<Flashcard | null>(null);
@@ -50,28 +51,25 @@ const TrainingSession: React.FC = () => {
           newInterval = 1;
           break;
       }
-
-      const updatedCard = {
-        ...currentCard,
-        interval: newInterval,
-        lastReviewed: new Date(),
-      };
-
-      const remainingCards = deckFlashcards.map((card) =>
-        card.id === currentCard.id ? updatedCard : card
+  
+      // const updatedCard = {
+      //   ...currentCard,
+      //   interval: newInterval,
+      //   lastReviewed: new Date(),
+      // };
+  
+      const remainingCards = deckFlashcards.filter(
+        card => card.id !== currentCard.id // Remove the current card
       );
-
+  
       setDeckFlashcards(remainingCards);
-
-      if (remainingCards.length > 0) {
-        setCurrentCard(remainingCards[0]);
-      } else {
-        setCurrentCard(null);
-      }
-
+  
+      // Now you're grabbing the next card if available
+      setCurrentCard(remainingCards.length > 0 ? remainingCards[0] : null);
+  
       const endTime = Date.now();
       const timeToAnswer = endTime - startTime;
-
+  
       setSessionData([
         ...sessionData,
         {
@@ -85,6 +83,7 @@ const TrainingSession: React.FC = () => {
       setStartTime(endTime);
     }
   };
+  
 
   const handleEndSession = () => {
     localStorage.setItem(sessionId, JSON.stringify(sessionData));
@@ -92,37 +91,46 @@ const TrainingSession: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="training-container">
       <h2>Training Session</h2>
       {currentCard ? (
         <>
-          <div>
-            <p>Question: {currentCard.question}</p>
+          <div className="question-box">
+            <p>{currentCard.question}</p>
           </div>
-          <div>
+          <div className="answer-box">
             <label>
               Your Answer:
               <textarea
                 value={userAnswer}
                 onChange={(e) => setUserAnswer(e.target.value)}
+                rows={4}
               />
             </label>
           </div>
           {userAnswer && (
-            <div>
-              <button onClick={() => handleRating("easy")}>Easy</button>
-              <button onClick={() => handleRating("medium")}>Medium</button>
-              <button onClick={() => handleRating("hard")}>Hard</button>
+            <div className="rating-buttons">
+              <button className="easy-btn" onClick={() => handleRating("easy")}>
+                Easy
+              </button>
+              <button className="medium-btn" onClick={() => handleRating("medium")}>
+                Medium
+              </button>
+              <button className="hard-btn" onClick={() => handleRating("hard")}>
+                Hard
+              </button>
             </div>
           )}
         </>
       ) : (
-        <>
+        <div className="end-session">
           <p>
             No flashcards available for review today. Please come back later.
           </p>
-          <button onClick={handleEndSession}>End Session</button>
-        </>
+          <button className="end-session-btn" onClick={handleEndSession}>
+            End Session
+          </button>
+        </div>
       )}
     </div>
   );

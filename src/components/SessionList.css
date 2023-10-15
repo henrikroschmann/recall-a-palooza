@@ -1,0 +1,29 @@
+.sessions-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .sessions-table th, .sessions-table td {
+    border: 1px solid #e1e1e1;
+    padding: 0.8rem;
+    text-align: left;
+  }
+  
+  .session-time {
+    color: #6c757d;  /* Grayish color for muted text. */
+  }
+  
+  .session-item:hover {
+    background-color: #f7f7f7;
+  }
+  
+  .session-link {
+    text-decoration: none;
+    color: #007BFF;
+    transition: color 0.3s;
+  }
+  
+  .session-link:hover {
+    color: #0056b3;
+  }
+  

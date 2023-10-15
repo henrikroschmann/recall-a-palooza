@@ -4,11 +4,56 @@
   padding: 2rem;
   text-align: center;
 }
+
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f5f7;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
   margin: 0;
   padding: 0;
+  color: #333;
+  line-height: 1.6;
+}
+
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 80vh;
+  gap: 1rem;
+}
+
+.hero-section img {
+  max-width: 250px;
+  height: auto;
+}
+
+.hero-section h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.primary-btn {
+  background-color: #007BFF;
+  border: none;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 1.1rem;
+  text-align: center;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.3s;
+  display: inline-block;
+}
+
+.primary-btn:hover {
+  background-color: #0056b3;
+}
+
+.primary-btn a {
+  color: #fff;
+  text-decoration: none;
 }
 
 nav {
@@ -22,6 +67,7 @@ nav ul {
   padding: 0;
   display: flex;
   gap: 15px;
+  justify-content: center;
 }
 
 nav li {
@@ -38,25 +84,6 @@ nav a {
 
 nav a:hover {
   background-color: #555;
-}
-
-h1, h2 {
-  color: #333;
-}
-
-button {
-  padding: 0.5rem 1rem;
-  margin-top: 1rem;
-  border: none;
-  background-color: #007BFF;
-  color: white;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.3s;
-}
-
-button:hover {
-  background-color: #0056b3;
 }
 
 textarea {

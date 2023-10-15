@@ -2,6 +2,7 @@ import React, { useState, FormEvent } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Link } from "react-router-dom";
 import { Flashcard } from "../types";
+import "./Deck.css";
 
 const Deck: React.FC = () => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -33,39 +34,39 @@ const Deck: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="deck-container">
       <h2>Create a Deck</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>
-            Question:
-            <input
-              type="text"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-            />
-          </label>
+      <form className="flashcard-form" onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="question">Question:</label>
+          <input
+            id="question"
+            type="text"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="Enter the flashcard question"
+          />
         </div>
-        <div>
-          <label>
-            Answer:
-            <input
-              type="text"
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-            />
-          </label>
+        <div className="form-group">
+          <label htmlFor="answer">Answer:</label>
+          <input
+            id="answer"
+            type="text"
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            placeholder="Enter the flashcard answer"
+          />
         </div>
-        <button type="submit">Add Flashcard</button>
+        <button className="submit-btn" type="submit">Add Flashcard</button>
       </form>
-      <button onClick={saveDeck}>Save Deck</button>
-      {deckId && <Link to={`/train/${deckId}`}>Train on this Deck</Link>}
+      <button className="save-btn" onClick={saveDeck}>Save Deck</button>
+      {deckId && <Link className="train-link" to={`/train/${deckId}`}>Train on this Deck</Link>}
 
       <h3>Flashcards in this deck:</h3>
-      <ul>
+      <ul className="flashcard-list">
         {flashcards.map((card, index) => (
           <li key={index}>
-            Q: {card.question} | A: {card.answer}
+            Q: {card.question} <br /> A: {card.answer}
           </li>
         ))}
       </ul>
