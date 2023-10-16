@@ -1,28 +1,34 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { SessionData } from "../types";
+import { Session } from "../types";
 import "./TrainingReport.css";
+import { useGetsessionByIdQuery } from "../utils/slices/SessionApi";
+import { FeatureFlagsContext } from "../context/FeatureFlagContext";
 
 const TrainingReport: React.FC = () => {
+  const features = React.useContext(FeatureFlagsContext);
   const { sessionId } = useParams<{ deckId: string; sessionId: string }>();
-  const [sessionData, setSessionData] = useState<SessionData[]>([]);
+  const [sessionData, setSessionData] = useState<Session>();
+  const { data: sessionQuery } = useGetsessionByIdQuery(sessionId!);
 
   useEffect(() => {
-    const sessionDataString = localStorage.getItem(sessionId!);
-    const retrievedSessionData: SessionData[] = sessionDataString
-      ? (JSON.parse(sessionDataString) as SessionData[])
-      : [];
+    let retrievedSessionData: Session | undefined;
+
+    if (features.isLocalStorageEnabled) {
+      const sessionDataString = localStorage.getItem(sessionId!);
+      if (sessionDataString)
+      retrievedSessionData = JSON.parse(sessionDataString) as Session
+    } else {
+      retrievedSessionData = sessionQuery
+    }
 
     setSessionData(retrievedSessionData);
-
-    // For debugging purposes
-    console.log("Session Data:", retrievedSessionData);
-  }, [sessionId]);
+  }, [features.isLocalStorageEnabled, sessionId, sessionQuery]);
 
   return (
     <div className="report-container">
       <h2>Training Report</h2>
-      {sessionData.length === 0 ? (
+      {sessionData?.data.length === 0 ? (
         <p className="no-data">No data available for this session.</p>
       ) : (
         <table className="report-table">
@@ -35,8 +41,11 @@ const TrainingReport: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {sessionData.map((data, index) => (
-              <tr key={index} className={data.correct ? "correct" : "incorrect"}>
+            {sessionData?.data.map((data, index) => (
+              <tr
+                key={index}
+                className={data.correct ? "correct" : "incorrect"}
+              >
                 <td>{data.question}</td>
                 <td>{(data.timeToAnswer / 1000).toFixed(2)}</td>
                 <td>{data.correct ? "Yes" : "No"}</td>
@@ -48,7 +57,6 @@ const TrainingReport: React.FC = () => {
       )}
     </div>
   );
-  
 };
 
 export default TrainingReport;

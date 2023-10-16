@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend
+    ports:
+      - "8081:8081"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend # Use multi-stage build targeting backend. You'd need to adjust your Dockerfile for this. See next step.
+    environment:
+      MONGO_URI: "mongodb://mongo:27017/palooza" # Adjust the DB name "mydb" as per your application's requirement
+    ports:
+      - "3066:3066"
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+
+volumes:
+  mongodata:

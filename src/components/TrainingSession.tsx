@@ -1,48 +1,71 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Flashcard, SessionData } from "../types";
+import { Deck, Flashcard, SessionData } from "../types";
 import "./TrainingSession.css";
+import { FeatureFlagsContext } from "../context/FeatureFlagContext";
+import {
+  useGetDeckByIdQuery,
+  useUpdateDeckByIdMutation,
+} from "../utils/slices/DeckApi";
+import { useCreatePostMutation } from "../utils/slices/SessionApi";
 
 const TrainingSession: React.FC = () => {
+  const features = React.useContext(FeatureFlagsContext);
   const [currentCard, setCurrentCard] = useState<Flashcard | null>(null);
   const [userAnswer, setUserAnswer] = useState<string>("");
   const [sessionData, setSessionData] = useState<SessionData[]>([]);
   const [startTime, setStartTime] = useState<number>(Date.now());
   const { deckId } = useParams<{ deckId: string }>();
-  const [deck, setDeck] = useState<Flashcard[]>(
-    JSON.parse(localStorage.getItem(deckId!) || "[]") as Flashcard[]
-  );
+  const [deck, setDeck] = useState<Deck>();
+  const { data: deckQuery } = useGetDeckByIdQuery(deckId!);
   const [deckFlashcards, setDeckFlashcards] = useState<Flashcard[]>([]);
   const [sessionId, setSessionId] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const initialDeckFlashcards: Flashcard[] = (
-      JSON.parse(localStorage.getItem(deckId!) || "[]") as Flashcard[]
-    )
-      .filter(
-        (card: Flashcard) =>
-          !card.lastReviewed ||
-          new Date().getDate() - new Date(card.lastReviewed).getDate() >=
-            (card.interval || 0)
-      )
-      .sort(
-        (a: Flashcard, b: Flashcard) => (a.interval || 0) - (b.interval || 0)
-      )
-      .slice(0, 20);
-
-    setDeckFlashcards(initialDeckFlashcards);
-
-    if (initialDeckFlashcards.length > 0) {
-      setCurrentCard(initialDeckFlashcards[0]); // Start with the first card (lowest interval/hardest).
+    if (features.isLocalStorageEnabled) {
+      const dataStr: string | null = localStorage.getItem(deckId!);
+      if (dataStr) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const data: Deck = JSON.parse(dataStr);
+        setDeck(data);
+      } else {
+        console.error("No data found for this deckId");
+      }
+    } else {
+      setDeck(deckQuery);
     }
+  }, [deckId, deckQuery, features.isLocalStorageEnabled]);
 
-    setSessionId(`${deckId!}-session-${Date.now()}`);
-  }, [deckId]);
+  useEffect(() => {
+    if (deck !== undefined) {
+      const initialDeckFlashcards: Flashcard[] =
+        deck?.cards
+          .filter(
+            (card: Flashcard) =>
+              !card.lastReviewed ||
+              new Date().getDate() - new Date(card.lastReviewed).getDate() >=
+                (card.interval || 0)
+          )
+          .sort(
+            (a: Flashcard, b: Flashcard) =>
+              (a.interval || 0) - (b.interval || 0)
+          )
+          .slice(0, 20) ?? [];
+
+      setDeckFlashcards(initialDeckFlashcards);
+
+      if (initialDeckFlashcards.length > 0) {
+        setCurrentCard(initialDeckFlashcards[0]); // Start with the first card (lowest interval/hardest).
+      }
+
+      setSessionId(`${deckId!}-session-${Date.now()}`);
+    }
+  }, [deck, deckId]);
 
   const handleRating = (rating: "easy" | "medium" | "hard") => {
     if (currentCard) {
-      const correct = userAnswer === currentCard.answer
+      const correct = userAnswer === currentCard.answer;
       let newInterval;
       if (correct)
         switch (rating) {
@@ -55,7 +78,8 @@ const TrainingSession: React.FC = () => {
           case "hard":
             newInterval = 1;
             break;
-      } else {
+        }
+      else {
         newInterval = 1;
       }
 
@@ -64,10 +88,13 @@ const TrainingSession: React.FC = () => {
         interval: newInterval,
         lastReviewed: new Date(),
       };
-      const newDeck = deck.map((card) =>
+      const newDeck = deck?.cards.map((card) =>
         card.id === updatedCard.id ? updatedCard : card
       );
-      setDeck(newDeck);
+
+      if (newDeck) {
+        setDeck({ ...deck, cards: newDeck });
+      }
 
       const remainingCards = deckFlashcards.filter(
         (card) => card.id !== currentCard.id // Remove the current card
@@ -84,6 +111,7 @@ const TrainingSession: React.FC = () => {
       setSessionData([
         ...sessionData,
         {
+          id: sessionId,
           question: currentCard.question,
           timeToAnswer,
           correct: userAnswer === currentCard.answer,
@@ -95,9 +123,43 @@ const TrainingSession: React.FC = () => {
     }
   };
 
+  const [updateDeck] = useUpdateDeckByIdMutation();
+  const [createSession] = useCreatePostMutation();
   const handleEndSession = () => {
-    localStorage.setItem(sessionId, JSON.stringify(sessionData));
-    localStorage.setItem(deckId!, JSON.stringify(deck));
+    if (features.isLocalStorageEnabled) {
+      localStorage.setItem(
+        sessionId,
+        JSON.stringify({
+          id: sessionId,
+          data: sessionData,
+        })
+      );
+      localStorage.setItem(deckId!, JSON.stringify(deck));
+    } else {
+      if (deck) {
+        const update = async () => {
+          try {
+            await updateDeck({ id: deckId!, updates: deck });
+          } catch (error) {
+            console.error("Failed to update deck:", error);
+          }
+        };
+        void update();
+
+        const session = async () => {
+          try {
+            await createSession({
+              id: sessionId,
+              data: sessionData,
+            });
+          } catch (error) {
+            console.error("Failed to save session:", error);
+          }
+        };
+        void session();
+      }
+    }
+
     navigate(`/training-report/${sessionId}`);
   };
 

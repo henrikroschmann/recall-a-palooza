@@ -3,8 +3,11 @@ import { v4 as uuidv4 } from "uuid";
 import { Link } from "react-router-dom";
 import { Flashcard } from "../types";
 import "./Deck.css";
+import { FeatureFlagsContext } from "../context/FeatureFlagContext";
+import { useCreatePostMutation } from "../utils/slices/DeckApi";
 
 const Deck: React.FC = () => {
+  const features = React.useContext(FeatureFlagsContext);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [question, setQuestion] = useState<string>("");
   const [answer, setAnswer] = useState<string>("");
@@ -26,10 +29,32 @@ const Deck: React.FC = () => {
     }
   };
 
+  const [createDeck] = useCreatePostMutation();
   const saveDeck = () => {
     const id = uuidv4();
     setDeckId(id);
-    localStorage.setItem(id, JSON.stringify(flashcards));
+
+    if (features.isLocalStorageEnabled) {
+      localStorage.setItem(
+        id,
+        JSON.stringify({
+          id: id,
+          cards: flashcards,
+        })
+      );
+    } else {
+      const create = async () => {
+        try {
+          await createDeck({
+            id: id,
+            cards: flashcards,
+          });
+        } catch (error) {
+          console.error("Failed to create deck:", error);
+        }
+      };
+      void create();
+    }
   };
 
   return (
@@ -60,7 +85,7 @@ const Deck: React.FC = () => {
           Add Flashcard
         </button>
       </form>
-      <button className="save-btn" onClick={saveDeck}>
+      <button className="save-btn" onClick={() => saveDeck()}>
         Save Deck
       </button>
       {deckId && (

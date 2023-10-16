@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./SessionList.css";
+import { FeatureFlagsContext } from "../context/FeatureFlagContext";
+import { useFetchAllsessionsQuery } from "../utils/slices/SessionApi";
 
 interface SessionBrief {
   sessionId: string;
@@ -8,32 +10,45 @@ interface SessionBrief {
 }
 
 const SessionsList: React.FC = () => {
+  const features = React.useContext(FeatureFlagsContext);
   const [sessions, setSessions] = useState<SessionBrief[]>([]);
   const convertTimestampToDate = (timestamp: number): string => {
     const dateObj = new Date(timestamp);
     return dateObj.toLocaleString(); // This will return date and time in the format: "MM/DD/YYYY, hh:mm:ss AM/PM"
   };
 
-  useEffect(() => {
-    const allKeys = Object.keys(localStorage);
-    const sessionKeys = allKeys.filter((key) => key.includes("-session-"));
+  const { data } = useFetchAllsessionsQuery();
 
-    const retrievedSessions: SessionBrief[] = sessionKeys.map((key) => {
-      const [deckId] = key.split("-session-");
-      return {
-        sessionId: key,
-        deckId: deckId,
-      };
-    });
+  useEffect(() => {
+    let retrievedSessions: SessionBrief[];
+    if (features.isLocalStorageEnabled) {
+      const allKeys = Object.keys(localStorage);
+      const sessionKeys = allKeys.filter((key) => key.includes("-session-"));
+      retrievedSessions = sessionKeys.map((key) => {
+        const [deckId] = key.split("-session-");
+        return {
+          sessionId: key,
+          deckId: deckId,
+        };
+      });
+    } else {
+      retrievedSessions = data?.map((key) => {
+        const [deckId] = key.id!.split("-session-");
+        return {
+          sessionId: key.id,
+          deckId: deckId,
+        } as SessionBrief;
+      }) as SessionBrief[];
+    }
 
     setSessions(retrievedSessions);
-  }, []);
+  }, [data, features.isLocalStorageEnabled]);
 
   return (
     <div className="report-container">
       <h2>Training Session Report</h2>
 
-      {sessions.length === 0 ? (
+      {sessions?.length === 0 ? (
         <p>No sessions available.</p>
       ) : (
         <div className="report-content">
@@ -47,7 +62,7 @@ const SessionsList: React.FC = () => {
             </thead>
             <tbody>
               {sessions
-                .sort(
+                ?.sort(
                   (a, b) =>
                     Number(b.sessionId.split("-session-")[1]) -
                     Number(a.sessionId.split("-session-")[1])
