@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Flashcard, SessionData } from "../types";
-import "./TrainingSession.css"
+import "./TrainingSession.css";
 
 const TrainingSession: React.FC = () => {
   const [currentCard, setCurrentCard] = useState<Flashcard | null>(null);
@@ -9,6 +9,9 @@ const TrainingSession: React.FC = () => {
   const [sessionData, setSessionData] = useState<SessionData[]>([]);
   const [startTime, setStartTime] = useState<number>(Date.now());
   const { deckId } = useParams<{ deckId: string }>();
+  const [deck, setDeck] = useState<Flashcard[]>(
+    JSON.parse(localStorage.getItem(deckId!) || "[]") as Flashcard[]
+  );
   const [deckFlashcards, setDeckFlashcards] = useState<Flashcard[]>([]);
   const [sessionId, setSessionId] = useState<string>("");
   const navigate = useNavigate();
@@ -39,37 +42,45 @@ const TrainingSession: React.FC = () => {
 
   const handleRating = (rating: "easy" | "medium" | "hard") => {
     if (currentCard) {
+      const correct = userAnswer === currentCard.answer
       let newInterval;
-      switch (rating) {
-        case "easy":
-          newInterval = (currentCard.interval || 1) * 2;
-          break;
-        case "medium":
-          newInterval = (currentCard.interval || 1) * 1.5;
-          break;
-        case "hard":
-          newInterval = 1;
-          break;
+      if (correct)
+        switch (rating) {
+          case "easy":
+            newInterval = (currentCard.interval || 1) * 2;
+            break;
+          case "medium":
+            newInterval = (currentCard.interval || 1) * 1.5;
+            break;
+          case "hard":
+            newInterval = 1;
+            break;
+      } else {
+        newInterval = 1;
       }
-  
-      // const updatedCard = {
-      //   ...currentCard,
-      //   interval: newInterval,
-      //   lastReviewed: new Date(),
-      // };
-  
-      const remainingCards = deckFlashcards.filter(
-        card => card.id !== currentCard.id // Remove the current card
+
+      const updatedCard = {
+        ...currentCard,
+        interval: newInterval,
+        lastReviewed: new Date(),
+      };
+      const newDeck = deck.map((card) =>
+        card.id === updatedCard.id ? updatedCard : card
       );
-  
+      setDeck(newDeck);
+
+      const remainingCards = deckFlashcards.filter(
+        (card) => card.id !== currentCard.id // Remove the current card
+      );
+
       setDeckFlashcards(remainingCards);
-  
+
       // Now you're grabbing the next card if available
       setCurrentCard(remainingCards.length > 0 ? remainingCards[0] : null);
-  
+
       const endTime = Date.now();
       const timeToAnswer = endTime - startTime;
-  
+
       setSessionData([
         ...sessionData,
         {
@@ -83,10 +94,10 @@ const TrainingSession: React.FC = () => {
       setStartTime(endTime);
     }
   };
-  
 
   const handleEndSession = () => {
     localStorage.setItem(sessionId, JSON.stringify(sessionData));
+    localStorage.setItem(deckId!, JSON.stringify(deck));
     navigate(`/training-report/${sessionId}`);
   };
 
@@ -113,7 +124,10 @@ const TrainingSession: React.FC = () => {
               <button className="easy-btn" onClick={() => handleRating("easy")}>
                 Easy
               </button>
-              <button className="medium-btn" onClick={() => handleRating("medium")}>
+              <button
+                className="medium-btn"
+                onClick={() => handleRating("medium")}
+              >
                 Medium
               </button>
               <button className="hard-btn" onClick={() => handleRating("hard")}>

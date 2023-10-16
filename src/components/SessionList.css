@@ -1,6 +1,7 @@
 .sessions-table {
     width: 100%;
     border-collapse: collapse;
+    color: #333;
   }
   
   .sessions-table th, .sessions-table td {

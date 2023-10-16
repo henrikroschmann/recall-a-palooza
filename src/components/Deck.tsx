@@ -17,8 +17,7 @@ const Deck: React.FC = () => {
         id: uuidv4(),
         question,
         answer,
-        // interval: someDefaultValue,  // Add a default value here
-        // lastReviewed: someOtherDefaultValue // Add a default value here
+        interval: 1,
       };
 
       setFlashcards((prevCards) => [...prevCards, newCard]);
@@ -57,10 +56,18 @@ const Deck: React.FC = () => {
             placeholder="Enter the flashcard answer"
           />
         </div>
-        <button className="submit-btn" type="submit">Add Flashcard</button>
+        <button className="submit-btn" type="submit">
+          Add Flashcard
+        </button>
       </form>
-      <button className="save-btn" onClick={saveDeck}>Save Deck</button>
-      {deckId && <Link className="train-link" to={`/train/${deckId}`}>Train on this Deck</Link>}
+      <button className="save-btn" onClick={saveDeck}>
+        Save Deck
+      </button>
+      {deckId && (
+        <Link className="train-link" to={`/train/${deckId}`}>
+          Train on this Deck
+        </Link>
+      )}
 
       <h3>Flashcards in this deck:</h3>
       <ul className="flashcard-list">
