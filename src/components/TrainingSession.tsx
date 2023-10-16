@@ -121,6 +121,9 @@ const TrainingSession: React.FC = () => {
       setUserAnswer("");
       setStartTime(endTime);
     }
+    if (sessionData.length === 20) {
+      handleEndSession();
+    }
   };
 
   const [updateDeck] = useUpdateDeckByIdMutation();

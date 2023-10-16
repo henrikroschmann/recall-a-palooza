@@ -29,19 +29,40 @@
 # # Start your React app when the container starts
 # CMD ["sh", "-c", "cd /app && npm run preview & cd /app/backend && npm start"]
 
+# # FRONTEND
+# FROM node:14 as frontend
+# WORKDIR /app
+# COPY package*.json ./
+# RUN npm install
+# COPY . .
+# RUN npm run build
+# EXPOSE 8081
+# CMD ["npm", "run", "preview"]
+
+# # BACKEND
+# FROM node:14 as backend
+# WORKDIR /app/backend
+# COPY backend/package*.json ./
+# RUN npm install
+# COPY backend/ ./
+# EXPOSE 3066
+# CMD ["npm", "start"]
+
+
 # FRONTEND
 FROM node:14 as frontend
-WORKDIR /app
+WORKDIR /app/frontend
 COPY package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build
-EXPOSE 8081
-CMD ["npm", "run", "preview"]
 
 # BACKEND
 FROM node:14 as backend
 WORKDIR /app/backend
+# Copy the frontend build artifacts
+COPY --from=frontend /app/frontend/ /app/frontend/
+
 COPY backend/package*.json ./
 RUN npm install
 COPY backend/ ./
