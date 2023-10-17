@@ -8,6 +8,7 @@ import {
   useUpdateDeckByIdMutation,
 } from "../utils/slices/DeckApi";
 import { useCreatePostMutation } from "../utils/slices/SessionApi";
+import Markdown from "react-markdown";
 
 const TrainingSession: React.FC = () => {
   const features = React.useContext(FeatureFlagsContext);
@@ -17,7 +18,7 @@ const TrainingSession: React.FC = () => {
   const [startTime, setStartTime] = useState<number>(Date.now());
   const { deckId } = useParams<{ deckId: string }>();
   const [deck, setDeck] = useState<Deck>();
-  const { data: deckQuery } = useGetDeckByIdQuery(deckId!);
+  const { data: deckQuery } = useGetDeckByIdQuery(deckId);
   const [deckFlashcards, setDeckFlashcards] = useState<Flashcard[]>([]);
   const [sessionId, setSessionId] = useState<string>("");
   const navigate = useNavigate();
@@ -26,8 +27,7 @@ const TrainingSession: React.FC = () => {
     if (features.isLocalStorageEnabled) {
       const dataStr: string | null = localStorage.getItem(deckId!);
       if (dataStr) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const data: Deck = JSON.parse(dataStr);
+        const data: Deck = JSON.parse(dataStr) as Deck;
         setDeck(data);
       } else {
         console.error("No data found for this deckId");
@@ -169,21 +169,35 @@ const TrainingSession: React.FC = () => {
   return (
     <div className="training-container">
       <h2>Training Session</h2>
+
       {currentCard ? (
         <>
           <div className="question-box">
-            <p>{currentCard.question}</p>
+            <Markdown>{currentCard.question}</Markdown>
           </div>
-          <div className="answer-box">
-            <label>
-              Your Answer:
-              <textarea
-                value={userAnswer}
-                onChange={(e) => setUserAnswer(e.target.value)}
-                rows={4}
-              />
-            </label>
-          </div>
+
+          {/* Multiple choice section */}
+          {"options" in currentCard && currentCard.options ? (
+            <div className="multiple-choice">
+              {currentCard.options.map((option, index) => (
+                <button key={index} onClick={() => setUserAnswer(option)}>
+                  <Markdown>{option}</Markdown>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="answer-box">
+              <label>
+                Your Answer:
+                <textarea
+                  value={userAnswer}
+                  onChange={(e) => setUserAnswer(e.target.value)}
+                  rows={4}
+                />
+              </label>
+            </div>
+          )}
+
           {userAnswer && (
             <div className="rating-buttons">
               <button className="easy-btn" onClick={() => handleRating("easy")}>

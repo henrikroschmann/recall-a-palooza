@@ -10,22 +10,27 @@ const Deck: React.FC = () => {
   const features = React.useContext(FeatureFlagsContext);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [question, setQuestion] = useState<string>("");
-  const [answer, setAnswer] = useState<string>("");
+  const [answers, setAnswers] = useState<string[]>([]);
   const [deckId, setDeckId] = useState<string>("");
+  const [selectedCorrectAnswer, setSelectedCorrectAnswer] = useState<
+    number | null
+  >(null);
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
-    if (question && answer) {
+    if (question && answers.length && selectedCorrectAnswer !== null) {
       const newCard = {
         id: uuidv4(),
         question,
-        answer,
+        options: answers,
+        answer: answers[selectedCorrectAnswer],
         interval: 1,
       };
 
       setFlashcards((prevCards) => [...prevCards, newCard]);
       setQuestion("");
-      setAnswer("");
+      setAnswers([]);
+      setSelectedCorrectAnswer(null); // Reset the selected answer
     }
   };
 
@@ -63,29 +68,63 @@ const Deck: React.FC = () => {
       <form className="flashcard-form" onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="question">Question:</label>
-          <input
+          <textarea
             id="question"
-            type="text"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Enter the flashcard question"
+            placeholder="Enter the flashcard question with Markdown"
           />
         </div>
-        <div className="form-group">
-          <label htmlFor="answer">Answer:</label>
-          <input
-            id="answer"
-            type="text"
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Enter the flashcard answer"
-          />
-        </div>
+
+        {answers.length === 0 ? (
+          <div className="form-group">
+            <label htmlFor="answer">Answer:</label>
+            <textarea
+              id="answer"
+              value={answers[0] || ""}
+              onChange={(e) => setAnswers([e.target.value])}
+              placeholder="Enter the flashcard answer with Markdown"
+            />
+          </div>
+        ) : (
+          answers.map((answer, idx) => (
+            <div className="form-group" key={idx}>
+              <label htmlFor={`answer${idx}`}>Answer {idx + 1}:</label>
+              <textarea
+                id={`answer${idx}`}
+                value={answer}
+                onChange={(e) => {
+                  const newAnswers = [...answers];
+                  newAnswers[idx] = e.target.value;
+                  setAnswers(newAnswers);
+                }}
+                placeholder={`Answer ${idx + 1}`}
+              />
+              <label>
+                <input
+                  type="radio"
+                  name="correctAnswer"
+                  value={idx}
+                  checked={selectedCorrectAnswer === idx}
+                  onChange={() => setSelectedCorrectAnswer(idx)}
+                />{" "}
+                Correct Answer
+              </label>
+            </div>
+          ))
+        )}
+
+        {answers.length > 0 && (
+          <button type="button" onClick={() => setAnswers([...answers, ""])}>
+            Add Answer
+          </button>
+        )}
+
         <button className="submit-btn" type="submit">
           Add Flashcard
         </button>
       </form>
-      <button className="save-btn" onClick={() => saveDeck()}>
+      <button className="save-btn" onClick={saveDeck}>
         Save Deck
       </button>
       {deckId && (
@@ -98,7 +137,7 @@ const Deck: React.FC = () => {
       <ul className="flashcard-list">
         {flashcards.map((card, index) => (
           <li key={index}>
-            Q: {card.question} <br /> A: {card.answer}
+            Q: {card.question} <br /> A: {(card.options as string[]).join(", ")}
           </li>
         ))}
       </ul>
