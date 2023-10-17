@@ -4,9 +4,11 @@ const FlashcardSchema = new mongoose.Schema({
     id: { type: String, required: true },
     question: { type: String, required: true },
     answer: { type: String, required: true },
+    options: [{ type: String }],
     interval: { type: Number, default: null },
     lastReviewed: { type: Date, default: null }
 });
+
 
 const DeckSchema = new mongoose.Schema({
     id: { type: String, required: true },

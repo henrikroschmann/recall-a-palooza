@@ -23,6 +23,15 @@ const TrainingSession: React.FC = () => {
   const [sessionId, setSessionId] = useState<string>("");
   const navigate = useNavigate();
 
+  const submitAnswer = (answer: string) => {
+    setUserAnswer(answer);
+
+    // For multiple-choice, we can automatically submit the answer once chosen
+    if ("options" in currentCard && currentCard.options) {
+      handleRating("medium"); // Default rating for multiple choice can be "medium"
+    }
+  };
+
   useEffect(() => {
     if (features.isLocalStorageEnabled) {
       const dataStr: string | null = localStorage.getItem(deckId!);
@@ -177,10 +186,10 @@ const TrainingSession: React.FC = () => {
           </div>
 
           {/* Multiple choice section */}
-          {"options" in currentCard && currentCard.options ? (
+          {currentCard.options && currentCard.options.length > 1 ? (
             <div className="multiple-choice">
               {currentCard.options.map((option, index) => (
-                <button key={index} onClick={() => setUserAnswer(option)}>
+                <button key={index} onClick={() => submitAnswer(option)}>
                   <Markdown>{option}</Markdown>
                 </button>
               ))}
@@ -195,10 +204,13 @@ const TrainingSession: React.FC = () => {
                   rows={4}
                 />
               </label>
+              <button onClick={() => handleRating("medium")}>
+                Submit Answer
+              </button>
             </div>
           )}
 
-          {userAnswer && (
+          {userAnswer && !currentCard.options && (
             <div className="rating-buttons">
               <button className="easy-btn" onClick={() => handleRating("easy")}>
                 Easy

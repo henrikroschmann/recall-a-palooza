@@ -12,13 +12,50 @@ const Deck: React.FC = () => {
   const [question, setQuestion] = useState<string>("");
   const [answers, setAnswers] = useState<string[]>([]);
   const [deckId, setDeckId] = useState<string>("");
+  const [isMultipleChoice, setIsMultipleChoice] = useState<boolean>(false);
   const [selectedCorrectAnswer, setSelectedCorrectAnswer] = useState<
     number | null
   >(null);
 
+  const handleAnswerChange = (event, index) => {
+    const newAnswers = [...answers];
+    newAnswers[index] = event.target.value;
+    setAnswers(newAnswers);
+  };
+
+  const handleAddAnswer = () => {
+    setAnswers([...answers, ""]);
+  };
+
+  const handleRemoveAnswer = (index) => {
+    const newAnswers = answers.filter((_, idx) => idx !== index);
+    setAnswers(newAnswers);
+  };
+
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
-    if (question && answers.length && selectedCorrectAnswer !== null) {
+
+    // Check for single answer card
+    if (!isMultipleChoice && question && answers.length === 1) {
+      const newCard = {
+        id: uuidv4(),
+        question,
+        options: [answers[0]],
+        answer: answers[0],
+        interval: 1,
+      };
+
+      setFlashcards((prevCards) => [...prevCards, newCard]);
+      setQuestion("");
+      setAnswers([]);
+    }
+    // Check for multiple choice card
+    else if (
+      isMultipleChoice &&
+      question &&
+      answers.length &&
+      selectedCorrectAnswer !== null
+    ) {
       const newCard = {
         id: uuidv4(),
         question,
@@ -65,64 +102,70 @@ const Deck: React.FC = () => {
   return (
     <div className="deck-container">
       <h2>Create a Deck</h2>
-      <form className="flashcard-form" onSubmit={handleSubmit}>
+      {/* Toggle between Multiple Choice and Single Answer */}
+      <button
+        type="button"
+        onClick={() => setIsMultipleChoice(!isMultipleChoice)}
+      >
+        {isMultipleChoice
+          ? "Switch to Single Answer"
+          : "Switch to Multiple Choice"}
+      </button>
+
+      {/* Flashcard Form */}
+      <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="question">Question:</label>
-          <textarea
-            id="question"
+          <label>Question</label>
+          <input
+            type="text"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Enter the flashcard question with Markdown"
           />
         </div>
 
-        {answers.length === 0 ? (
-          <div className="form-group">
-            <label htmlFor="answer">Answer:</label>
-            <textarea
-              id="answer"
-              value={answers[0] || ""}
-              onChange={(e) => setAnswers([e.target.value])}
-              placeholder="Enter the flashcard answer with Markdown"
-            />
-          </div>
-        ) : (
+        {/* Conditionally render input fields based on isMultipleChoice */}
+        {isMultipleChoice ? (
           answers.map((answer, idx) => (
-            <div className="form-group" key={idx}>
-              <label htmlFor={`answer${idx}`}>Answer {idx + 1}:</label>
-              <textarea
-                id={`answer${idx}`}
+            <div key={idx} className="form-group">
+              <label>Option {idx + 1}</label>
+              <input
+                type="text"
                 value={answer}
-                onChange={(e) => {
-                  const newAnswers = [...answers];
-                  newAnswers[idx] = e.target.value;
-                  setAnswers(newAnswers);
-                }}
-                placeholder={`Answer ${idx + 1}`}
+                onChange={(e) => handleAnswerChange(e, idx)}
               />
-              <label>
-                <input
-                  type="radio"
-                  name="correctAnswer"
-                  value={idx}
-                  checked={selectedCorrectAnswer === idx}
-                  onChange={() => setSelectedCorrectAnswer(idx)}
-                />{" "}
-                Correct Answer
-              </label>
+              <button type="button" onClick={() => handleRemoveAnswer(idx)}>
+                Remove
+              </button>
+              <input
+                type="radio"
+                name="correct-answer"
+                value={idx}
+                checked={selectedCorrectAnswer === idx}
+                onChange={(e) =>
+                  setSelectedCorrectAnswer(parseInt(e.target.value))
+                }
+              />{" "}
+              Mark as Correct
             </div>
           ))
+        ) : (
+          <div className="form-group">
+            <label>Answer</label>
+            <input
+              type="text"
+              value={answers[0] || ""}
+              onChange={(e) => setAnswers([e.target.value])}
+            />
+          </div>
         )}
 
-        {answers.length > 0 && (
-          <button type="button" onClick={() => setAnswers([...answers, ""])}>
-            Add Answer
+        {isMultipleChoice && (
+          <button type="button" onClick={handleAddAnswer}>
+            Add Option
           </button>
         )}
 
-        <button className="submit-btn" type="submit">
-          Add Flashcard
-        </button>
+        <button type="submit">Add Flashcard</button>
       </form>
       <button className="save-btn" onClick={saveDeck}>
         Save Deck
@@ -137,7 +180,7 @@ const Deck: React.FC = () => {
       <ul className="flashcard-list">
         {flashcards.map((card, index) => (
           <li key={index}>
-            Q: {card.question} <br /> A: {(card.options as string[]).join(", ")}
+            Q: {card.question} <br /> A: {card.options.join(", ")}
           </li>
         ))}
       </ul>
