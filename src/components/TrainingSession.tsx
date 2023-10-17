@@ -22,13 +22,13 @@ const TrainingSession: React.FC = () => {
   const [deckFlashcards, setDeckFlashcards] = useState<Flashcard[]>([]);
   const [sessionId, setSessionId] = useState<string>("");
   const navigate = useNavigate();
+  const [hasAnswered, setHasAnswered] = useState<boolean>(false); // New state
 
   const submitAnswer = (answer: string) => {
     setUserAnswer(answer);
 
-    // For multiple-choice, we can automatically submit the answer once chosen
     if ("options" in currentCard && currentCard.options) {
-      handleRating("medium"); // Default rating for multiple choice can be "medium"
+      setHasAnswered(true); // Set hasAnswered to true when a multiple choice is selected
     }
   };
 
@@ -185,7 +185,6 @@ const TrainingSession: React.FC = () => {
             <Markdown>{currentCard.question}</Markdown>
           </div>
 
-          {/* Multiple choice section */}
           {currentCard.options && currentCard.options.length > 1 ? (
             <div className="multiple-choice">
               {currentCard.options.map((option, index) => (
@@ -200,17 +199,17 @@ const TrainingSession: React.FC = () => {
                 Your Answer:
                 <textarea
                   value={userAnswer}
-                  onChange={(e) => setUserAnswer(e.target.value)}
+                  onChange={(e) => {
+                    setUserAnswer(e.target.value);
+                    setHasAnswered(e.target.value.trim() !== ""); // Set hasAnswered based on textarea content
+                  }}
                   rows={4}
                 />
               </label>
-              <button onClick={() => handleRating("medium")}>
-                Submit Answer
-              </button>
             </div>
           )}
 
-          {userAnswer && !currentCard.options && (
+          {hasAnswered && (
             <div className="rating-buttons">
               <button className="easy-btn" onClick={() => handleRating("easy")}>
                 Easy
