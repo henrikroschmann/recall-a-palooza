@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Deck, Flashcard, SessionData } from "../types";
 import "./TrainingSession.css";
-import { FeatureFlagsContext } from "../context/FeatureFlagContext";
 import {
   useGetDeckByIdQuery,
   useUpdateDeckByIdMutation,
@@ -11,14 +10,13 @@ import { useCreatePostMutation } from "../utils/slices/SessionApi";
 import Markdown from "react-markdown";
 
 const TrainingSession: React.FC = () => {
-  const features = React.useContext(FeatureFlagsContext);
   const [currentCard, setCurrentCard] = useState<Flashcard | null>(null);
   const [userAnswer, setUserAnswer] = useState<string>("");
   const [sessionData, setSessionData] = useState<SessionData[]>([]);
   const [startTime, setStartTime] = useState<number>(Date.now());
   const { deckId } = useParams<{ deckId: string }>();
   const [deck, setDeck] = useState<Deck>();
-  const { data: deckQuery } = useGetDeckByIdQuery(deckId);
+  const { data: deckQuery } = useGetDeckByIdQuery(deckId ?? "");
   const [deckFlashcards, setDeckFlashcards] = useState<Flashcard[]>([]);
   const [sessionId, setSessionId] = useState<string>("");
   const navigate = useNavigate();
@@ -26,25 +24,16 @@ const TrainingSession: React.FC = () => {
 
   const submitAnswer = (answer: string) => {
     setUserAnswer(answer);
-
-    if ("options" in currentCard && currentCard.options) {
-      setHasAnswered(true); // Set hasAnswered to true when a multiple choice is selected
+    if (currentCard) {
+      if ("options" in currentCard && currentCard.options) {
+        setHasAnswered(true);
+      }
     }
   };
 
   useEffect(() => {
-    if (features.isLocalStorageEnabled) {
-      const dataStr: string | null = localStorage.getItem(deckId!);
-      if (dataStr) {
-        const data: Deck = JSON.parse(dataStr) as Deck;
-        setDeck(data);
-      } else {
-        console.error("No data found for this deckId");
-      }
-    } else {
-      setDeck(deckQuery);
-    }
-  }, [deckId, deckQuery, features.isLocalStorageEnabled]);
+    setDeck(deckQuery);
+  }, [deckId, deckQuery]);
 
   useEffect(() => {
     if (deck !== undefined) {
@@ -68,14 +57,14 @@ const TrainingSession: React.FC = () => {
         setCurrentCard(initialDeckFlashcards[0]); // Start with the first card (lowest interval/hardest).
       }
 
-      setSessionId(`${deckId!}-session-${Date.now()}`);
+      setSessionId(`${deckId ?? ""}-session-${Date.now()}`);
     }
   }, [deck, deckId]);
 
   const handleRating = (rating: "easy" | "medium" | "hard") => {
     if (currentCard) {
       const correct = userAnswer === currentCard.answer;
-      let newInterval;
+      let newInterval = 1;
       if (correct)
         switch (rating) {
           case "easy":
@@ -110,8 +99,6 @@ const TrainingSession: React.FC = () => {
       );
 
       setDeckFlashcards(remainingCards);
-
-      // Now you're grabbing the next card if available
       setCurrentCard(remainingCards.length > 0 ? remainingCards[0] : null);
 
       const endTime = Date.now();
@@ -138,38 +125,27 @@ const TrainingSession: React.FC = () => {
   const [updateDeck] = useUpdateDeckByIdMutation();
   const [createSession] = useCreatePostMutation();
   const handleEndSession = () => {
-    if (features.isLocalStorageEnabled) {
-      localStorage.setItem(
-        sessionId,
-        JSON.stringify({
-          id: sessionId,
-          data: sessionData,
-        })
-      );
-      localStorage.setItem(deckId!, JSON.stringify(deck));
-    } else {
-      if (deck) {
-        const update = async () => {
-          try {
-            await updateDeck({ id: deckId!, updates: deck });
-          } catch (error) {
-            console.error("Failed to update deck:", error);
-          }
-        };
-        void update();
+    if (deck) {
+      const update = async () => {
+        try {
+          await updateDeck({ id: deckId ?? "", updates: deck });
+        } catch (error) {
+          console.error("Failed to update deck:", error);
+        }
+      };
+      void update();
 
-        const session = async () => {
-          try {
-            await createSession({
-              id: sessionId,
-              data: sessionData,
-            });
-          } catch (error) {
-            console.error("Failed to save session:", error);
-          }
-        };
-        void session();
-      }
+      const session = async () => {
+        try {
+          await createSession({
+            id: sessionId,
+            data: sessionData,
+          });
+        } catch (error) {
+          console.error("Failed to save session:", error);
+        }
+      };
+      void session();
     }
 
     navigate(`/training-report/${sessionId}`);

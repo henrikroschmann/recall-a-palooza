@@ -3,11 +3,9 @@ import { v4 as uuidv4 } from "uuid";
 import { Link } from "react-router-dom";
 import { Flashcard } from "../types";
 import "./Deck.css";
-import { FeatureFlagsContext } from "../context/FeatureFlagContext";
 import { useCreatePostMutation } from "../utils/slices/DeckApi";
 
 const Deck: React.FC = () => {
-  const features = React.useContext(FeatureFlagsContext);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [question, setQuestion] = useState<string>("");
   const [answers, setAnswers] = useState<string[]>([]);
@@ -17,7 +15,10 @@ const Deck: React.FC = () => {
     number | null
   >(null);
 
-  const handleAnswerChange = (event, index) => {
+  const handleAnswerChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
     const newAnswers = [...answers];
     newAnswers[index] = event.target.value;
     setAnswers(newAnswers);
@@ -27,7 +28,7 @@ const Deck: React.FC = () => {
     setAnswers([...answers, ""]);
   };
 
-  const handleRemoveAnswer = (index) => {
+  const handleRemoveAnswer = (index: number) => {
     const newAnswers = answers.filter((_, idx) => idx !== index);
     setAnswers(newAnswers);
   };
@@ -76,27 +77,17 @@ const Deck: React.FC = () => {
     const id = uuidv4();
     setDeckId(id);
 
-    if (features.isLocalStorageEnabled) {
-      localStorage.setItem(
-        id,
-        JSON.stringify({
+    const create = async () => {
+      try {
+        await createDeck({
           id: id,
           cards: flashcards,
-        })
-      );
-    } else {
-      const create = async () => {
-        try {
-          await createDeck({
-            id: id,
-            cards: flashcards,
-          });
-        } catch (error) {
-          console.error("Failed to create deck:", error);
-        }
-      };
-      void create();
-    }
+        });
+      } catch (error) {
+        console.error("Failed to create deck:", error);
+      }
+    };
+    void create();
   };
 
   return (
@@ -116,8 +107,8 @@ const Deck: React.FC = () => {
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>Question</label>
-          <input
-            type="text"
+          <textarea
+            aria-label="Question"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
           />
@@ -128,8 +119,8 @@ const Deck: React.FC = () => {
           answers.map((answer, idx) => (
             <div key={idx} className="form-group">
               <label>Option {idx + 1}</label>
-              <input
-                type="text"
+              <textarea
+                aria-label="Options"
                 value={answer}
                 onChange={(e) => handleAnswerChange(e, idx)}
               />
@@ -137,6 +128,7 @@ const Deck: React.FC = () => {
                 Remove
               </button>
               <input
+                aria-label="select-option"
                 type="radio"
                 name="correct-answer"
                 value={idx}
@@ -151,8 +143,8 @@ const Deck: React.FC = () => {
         ) : (
           <div className="form-group">
             <label>Answer</label>
-            <input
-              type="text"
+            <textarea
+              aria-label="answer"
               value={answers[0] || ""}
               onChange={(e) => setAnswers([e.target.value])}
             />
