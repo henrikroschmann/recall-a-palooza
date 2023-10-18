@@ -5,8 +5,8 @@ export const deckApi = createApi({
   reducerPath: "deckApi",
   baseQuery: fetchBaseQuery({ baseUrl: "/api/deck/" }),
   endpoints: (builder) => ({
-    getDeckById: builder.query<Deck, string>({
-      query: (deckId) => `${deckId}`,
+    getDeckById: builder.query<Deck, string>({      
+      query: (deckId?) => `${deckId}`,
     }),
     fetchAllDecks: builder.query<Deck[], void>({
       query: () => "",

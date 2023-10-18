@@ -13,16 +13,22 @@ const Deck: React.FC = () => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [question, setQuestion] = useState<string>("");
   const [answers, setAnswers] = useState<string[]>([]);
-  const { deckId } = useParams<{ deckId: string }>();
+  const { deckId = "" } = useParams<{ deckId?: string }>();
   const [newDeckId, setNewDeckId] = useState<string>("");
   const [isMultipleChoice, setIsMultipleChoice] = useState<boolean>(false);
   const [selectedCorrectAnswer, setSelectedCorrectAnswer] = useState<
     number | null
   >(null);
-  const { data: fetchedDeck, isLoading } = useGetDeckByIdQuery(deckId ?? "");
+  const {
+    data: fetchedDeck,
+    isLoading,  
+  } = useGetDeckByIdQuery(deckId, {
+    skip: !deckId
+  });
 
   useEffect(() => {
     if (fetchedDeck) {
+      // Only update the state if data was actually fetched
       setFlashcards(fetchedDeck.cards);
     }
   }, [fetchedDeck]);
@@ -41,9 +47,9 @@ const Deck: React.FC = () => {
   };
 
   const handleRemoveCard = (cardId: string) => {
-    const updatedCards = flashcards.filter(card => card.id !== cardId);
+    const updatedCards = flashcards.filter((card) => card.id !== cardId);
     setFlashcards(updatedCards);
-};
+  };
 
   const handleRemoveAnswer = (index: number) => {
     const newAnswers = answers.filter((_, idx) => idx !== index);
@@ -207,13 +213,14 @@ const Deck: React.FC = () => {
       )}
 
       <h3>Flashcards in this deck:</h3>
-      <ul className="flashcard-list">        
-        {flashcards?.length > 0 && flashcards.map((card, index) => (
-          <li key={index}>
-            Q: {card.question} <br /> A: {card.options.join(", ")}
-            <button onClick={() => handleRemoveCard(card.id)}>Remove</button>
-          </li>
-        ))}
+      <ul className="flashcard-list">
+        {flashcards?.length > 0 &&
+          flashcards.map((card, index) => (
+            <li key={index}>
+              Q: {card.question} <br /> A: {card.options.join(", ")}
+              <button onClick={() => handleRemoveCard(card.id)}>Remove</button>
+            </li>
+          ))}
       </ul>
     </div>
   );
