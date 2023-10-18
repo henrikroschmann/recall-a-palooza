@@ -1,0 +1,111 @@
+.training-container {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 3rem;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  max-width: 650px;
+  margin: 2rem auto;
+  color: #333;
+  font-family: Arial, sans-serif;
+}
+
+.question-box {
+  background-color: #f7f7f7;
+  padding: 2rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  font-size: 1.2rem;
+}
+
+.multiple-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.multiple-choice button {
+  background-color: #e7e7e7;
+  padding: 1rem;
+  flex: 1;
+  border: none;
+  border-radius: 8px;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.multiple-choice button.active {
+  background-color: #007BFF;
+  color: #fff;
+}
+
+
+.multiple-choice button:hover {
+  background-color: #d1d1d1;
+  transform: scale(1.05);
+}
+
+.answer-box textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+  resize: vertical;
+}
+
+.rating-buttons {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.rating-buttons button {
+  flex: 1;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.easy-btn {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.medium-btn {
+  background-color: #ffc107;
+  color: #222;
+}
+
+.hard-btn {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.rating-buttons button:hover {
+  transform: scale(1.05);
+}
+
+.end-session {
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+.end-session-btn {
+  background-color: #007BFF;
+  border: none;
+  color: #fff;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  margin-top: 2rem;
+  transition: background-color 0.3s,
+}
+
+.end-session-btn:hover {
+  opacity: 0.9;
+}

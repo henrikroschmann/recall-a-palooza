@@ -1,19 +1,31 @@
-import React, { useState, FormEvent } from "react";
+import React, { useState, FormEvent, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Link } from "react-router-dom";
-import { Flashcard } from "../types";
+import { Link, useParams } from "react-router-dom";
+import { Flashcard } from "../../types";
 import "./Deck.css";
-import { useCreatePostMutation } from "../utils/slices/DeckApi";
+import {
+  useCreatePostMutation,
+  useGetDeckByIdQuery,
+  useUpdateDeckByIdMutation,
+} from "../../utils/api/DeckApi";
 
 const Deck: React.FC = () => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [question, setQuestion] = useState<string>("");
   const [answers, setAnswers] = useState<string[]>([]);
-  const [deckId, setDeckId] = useState<string>("");
+  const { deckId } = useParams<{ deckId: string }>();
+  const [newDeckId, setNewDeckId] = useState<string>("");
   const [isMultipleChoice, setIsMultipleChoice] = useState<boolean>(false);
   const [selectedCorrectAnswer, setSelectedCorrectAnswer] = useState<
     number | null
   >(null);
+  const { data: fetchedDeck, isLoading } = useGetDeckByIdQuery(deckId ?? "");
+
+  useEffect(() => {
+    if (fetchedDeck) {
+      setFlashcards(fetchedDeck.cards);
+    }
+  }, [fetchedDeck]);
 
   const handleAnswerChange = (
     event: React.ChangeEvent<HTMLTextAreaElement>,
@@ -27,6 +39,11 @@ const Deck: React.FC = () => {
   const handleAddAnswer = () => {
     setAnswers([...answers, ""]);
   };
+
+  const handleRemoveCard = (cardId: string) => {
+    const updatedCards = flashcards.filter(card => card.id !== cardId);
+    setFlashcards(updatedCards);
+};
 
   const handleRemoveAnswer = (index: number) => {
     const newAnswers = answers.filter((_, idx) => idx !== index);
@@ -72,26 +89,47 @@ const Deck: React.FC = () => {
     }
   };
 
-  const [createDeck] = useCreatePostMutation();
-  const saveDeck = () => {
-    const id = uuidv4();
-    setDeckId(id);
+  const [createDeck, { isLoading: isCreating }] = useCreatePostMutation();
+  const [updateDeck, { isLoading: isUpdating }] = useUpdateDeckByIdMutation();
 
-    const create = async () => {
-      try {
-        await createDeck({
-          id: id,
-          cards: flashcards,
-        });
-      } catch (error) {
-        console.error("Failed to create deck:", error);
-      }
-    };
-    void create();
+  const saveDeck = () => {
+    if (deckId) {
+      // If deckId exists, update the deck
+      const update = async () => {
+        try {
+          await updateDeck({
+            id: deckId,
+            updates: { cards: flashcards },
+          });
+        } catch (error) {
+          console.error("Failed to update deck:", error);
+        }
+      };
+      void update();
+    } else {
+      // Create a new deck
+      const id = uuidv4();
+      setNewDeckId(id);
+
+      const create = async () => {
+        try {
+          await createDeck({
+            id: id,
+            cards: flashcards,
+          });
+        } catch (error) {
+          console.error("Failed to create deck:", error);
+        }
+      };
+      void create();
+    }
   };
 
   return (
     <div className="deck-container">
+      {isLoading && <p>Loading deck...</p>}
+      {isCreating && <p>Creating deck...</p>}
+      {isUpdating && <p>Updating deck...</p>}
       <h2>Create a Deck</h2>
       {/* Toggle between Multiple Choice and Single Answer */}
       <button
@@ -162,17 +200,18 @@ const Deck: React.FC = () => {
       <button className="save-btn" onClick={saveDeck}>
         Save Deck
       </button>
-      {deckId && (
-        <Link className="train-link" to={`/train/${deckId}`}>
+      {(deckId || newDeckId) && (
+        <Link className="train-link" to={`/train/${deckId || newDeckId}`}>
           Train on this Deck
         </Link>
       )}
 
       <h3>Flashcards in this deck:</h3>
-      <ul className="flashcard-list">
-        {flashcards.map((card, index) => (
+      <ul className="flashcard-list">        
+        {flashcards?.length > 0 && flashcards.map((card, index) => (
           <li key={index}>
             Q: {card.question} <br /> A: {card.options.join(", ")}
+            <button onClick={() => handleRemoveCard(card.id)}>Remove</button>
           </li>
         ))}
       </ul>

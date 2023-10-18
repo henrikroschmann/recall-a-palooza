@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Deck, Flashcard, SessionData } from "../types";
+import { Deck, Flashcard, SessionData } from "../../types";
 import "./TrainingSession.css";
 import {
   useGetDeckByIdQuery,
   useUpdateDeckByIdMutation,
-} from "../utils/slices/DeckApi";
-import { useCreatePostMutation } from "../utils/slices/SessionApi";
+} from "../../utils/api/DeckApi";
+import { useCreatePostMutation } from "../../utils/api/SessionApi";
 import Markdown from "react-markdown";
 
 const TrainingSession: React.FC = () => {
@@ -20,10 +20,12 @@ const TrainingSession: React.FC = () => {
   const [deckFlashcards, setDeckFlashcards] = useState<Flashcard[]>([]);
   const [sessionId, setSessionId] = useState<string>("");
   const navigate = useNavigate();
-  const [hasAnswered, setHasAnswered] = useState<boolean>(false); // New state
+  const [hasAnswered, setHasAnswered] = useState<boolean>(false);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
   const submitAnswer = (answer: string) => {
     setUserAnswer(answer);
+    setSelectedAnswer(answer); // Set the selected answer
     if (currentCard) {
       if ("options" in currentCard && currentCard.options) {
         setHasAnswered(true);
@@ -164,7 +166,11 @@ const TrainingSession: React.FC = () => {
           {currentCard.options && currentCard.options.length > 1 ? (
             <div className="multiple-choice">
               {currentCard.options.map((option, index) => (
-                <button key={index} onClick={() => submitAnswer(option)}>
+                <button
+                  key={index}
+                  className={option === selectedAnswer ? "active" : ""}
+                  onClick={() => submitAnswer(option)}
+                >
                   <Markdown>{option}</Markdown>
                 </button>
               ))}

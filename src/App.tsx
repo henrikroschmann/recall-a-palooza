@@ -1,10 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import "./App.css";
-import TrainingSession from "./components/TrainingSession";
-import Deck from "./components/Deck";
-import TrainingReport from "./components/TrainingReport";
-import SessionsList from "./components/SessionsList";
+import TrainingSession from "./components/TrainingSession/TrainingSession";
+import Deck from "./components/Deck/Deck";
+import TrainingReport from "./components/TrainingReport/TrainingReport";
+import SessionsList from "./components/SessionsList/SessionsList";
 
 const App: React.FC = () => {
   return (
@@ -12,6 +12,7 @@ const App: React.FC = () => {
       <div>
         <Routes>
           <Route path="/deck" element={<Deck />} />
+          <Route path="/deck/:deckId" element={<Deck />} />
           <Route path="/sessions-list" element={<SessionsList />} />
           <Route path="/train/:deckId" element={<TrainingSession />} />
           <Route path="/training-report/:sessionId" element={<TrainingReport />} />

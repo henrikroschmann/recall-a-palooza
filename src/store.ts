@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { deckApi } from './utils/slices/DeckApi';
-import { sessionApi } from './utils/slices/SessionApi';
+import { deckApi } from './utils/api/DeckApi';
+import { sessionApi } from './utils/api/SessionApi';
 
 
 const store = configureStore({

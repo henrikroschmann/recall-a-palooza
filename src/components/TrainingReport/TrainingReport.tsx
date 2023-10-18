@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Session } from "../types";
+import { Session } from "../../types";
 import "./TrainingReport.css";
-import { useGetsessionByIdQuery } from "../utils/slices/SessionApi";
+import { useGetsessionByIdQuery } from "../../utils/api/SessionApi";
 
 const TrainingReport: React.FC = () => {
   const { sessionId } = useParams<{ deckId: string; sessionId: string }>();

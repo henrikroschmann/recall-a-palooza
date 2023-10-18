@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./SessionList.css";
-import { useFetchAllsessionsQuery } from "../utils/slices/SessionApi";
+import { useFetchAllsessionsQuery } from "../../utils/api/SessionApi";
 
 interface SessionBrief {
   sessionId: string;
