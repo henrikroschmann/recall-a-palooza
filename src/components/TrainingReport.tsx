@@ -3,27 +3,17 @@ import { useParams } from "react-router-dom";
 import { Session } from "../types";
 import "./TrainingReport.css";
 import { useGetsessionByIdQuery } from "../utils/slices/SessionApi";
-import { FeatureFlagsContext } from "../context/FeatureFlagContext";
 
 const TrainingReport: React.FC = () => {
-  const features = React.useContext(FeatureFlagsContext);
   const { sessionId } = useParams<{ deckId: string; sessionId: string }>();
   const [sessionData, setSessionData] = useState<Session>();
-  const { data: sessionQuery } = useGetsessionByIdQuery(sessionId!);
+  const { data: sessionQuery } = useGetsessionByIdQuery(sessionId ?? "");
 
   useEffect(() => {
-    let retrievedSessionData: Session | undefined;
-
-    if (features.isLocalStorageEnabled) {
-      const sessionDataString = localStorage.getItem(sessionId!);
-      if (sessionDataString)
-      retrievedSessionData = JSON.parse(sessionDataString) as Session
-    } else {
-      retrievedSessionData = sessionQuery
-    }
+    const retrievedSessionData = sessionQuery;
 
     setSessionData(retrievedSessionData);
-  }, [features.isLocalStorageEnabled, sessionId, sessionQuery]);
+  }, [sessionId, sessionQuery]);
 
   return (
     <div className="report-container">

@@ -1,15 +1,12 @@
 .deck-container {
-  background-color: #fff;
+  background-color: #f9f9f9;
   border-radius: 8px;
   padding: 2rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
   max-width: 600px;
   margin: 0 auto;
   color: #333;
-}
-
-.flashcard-form {
-  margin-bottom: 2rem;
+  font-family: 'Arial', sans-serif;
 }
 
 .form-group {
@@ -22,32 +19,43 @@ label {
   font-weight: bold;
 }
 
-input[type="text"] {
+input[type="text"], input[type="radio"] {
   width: 100%;
   padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1rem;
+  margin-bottom: 0.5rem;
 }
 
-.submit-btn, .save-btn {
+input[type="radio"] {
+  width: auto;
+  margin-right: 0.5rem;
+}
+
+button, .submit-btn, .save-btn {
   background-color: #007BFF;
   border: none;
   color: #fff;
-  padding: 10px 20px;
-  border-radius: 5px;
+  padding: 10px 15px;
+  border-radius: 4px;
   font-size: 1rem;
-  margin-right: 1rem;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s, transform 0.2s;
+  margin-right: 0.5rem;
+}
+
+button:hover, .submit-btn:hover, .save-btn:hover {
+  background-color: #0056b3;
+  transform: scale(0.98);
 }
 
 .save-btn {
   background-color: #28a745;
 }
 
-.submit-btn:hover, .save-btn:hover {
-  opacity: 0.9;
+.save-btn:hover {
+  background-color: #218838;
 }
 
 .train-link {
@@ -56,6 +64,11 @@ input[type="text"] {
   text-decoration: none;
   color: #007BFF;
   font-weight: bold;
+  transition: color 0.2s;
+}
+
+.train-link:hover {
+  color: #0056b3;
 }
 
 .flashcard-list {
@@ -64,8 +77,14 @@ input[type="text"] {
 }
 
 .flashcard-list li {
+  background-color: #fff;
   padding: 1rem;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   border-radius: 4px;
   margin-top: 1rem;
 }
+
+.flashcard-form {
+  margin-bottom: 2rem;
+}
+

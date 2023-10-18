@@ -6,8 +6,9 @@ export interface Deck {
 export interface Flashcard {
   id: string;
   question: string;
+  options: string[];
   answer: string;
-  interval?: number;
+  interval: number;
   lastReviewed?: Date | null;
 }
 

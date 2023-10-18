@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./SessionList.css";
-import { FeatureFlagsContext } from "../context/FeatureFlagContext";
 import { useFetchAllsessionsQuery } from "../utils/slices/SessionApi";
 
 interface SessionBrief {
@@ -10,7 +9,6 @@ interface SessionBrief {
 }
 
 const SessionsList: React.FC = () => {
-  const features = React.useContext(FeatureFlagsContext);
   const [sessions, setSessions] = useState<SessionBrief[]>([]);
   const convertTimestampToDate = (timestamp: number): string => {
     const dateObj = new Date(timestamp);
@@ -20,29 +18,20 @@ const SessionsList: React.FC = () => {
   const { data } = useFetchAllsessionsQuery();
 
   useEffect(() => {
-    let retrievedSessions: SessionBrief[];
-    if (features.isLocalStorageEnabled) {
-      const allKeys = Object.keys(localStorage);
-      const sessionKeys = allKeys.filter((key) => key.includes("-session-"));
-      retrievedSessions = sessionKeys.map((key) => {
-        const [deckId] = key.split("-session-");
-        return {
-          sessionId: key,
-          deckId: deckId,
-        };
+    if (data) {
+      const mappedSessions = data.map((key) => {
+        if (key.id) {
+          const [deckId] = key.id.split("-session-");
+          return {
+            sessionId: key.id,
+            deckId: deckId,
+          };
+        }
+        return null;
       });
-    } else {
-      retrievedSessions = data?.map((key) => {
-        const [deckId] = key.id!.split("-session-");
-        return {
-          sessionId: key.id,
-          deckId: deckId,
-        } as SessionBrief;
-      }) as SessionBrief[];
+      setSessions(mappedSessions.filter(Boolean) as SessionBrief[]);
     }
-
-    setSessions(retrievedSessions);
-  }, [data, features.isLocalStorageEnabled]);
+  }, [data]);
 
   return (
     <div className="report-container">
