@@ -16,7 +16,7 @@ const Deck: React.FC = () => {
   >(null);
 
   const handleAnswerChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLTextAreaElement>,
     index: number
   ) => {
     const newAnswers = [...answers];
