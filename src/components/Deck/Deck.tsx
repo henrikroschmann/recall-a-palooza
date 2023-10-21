@@ -122,6 +122,19 @@ const Deck: React.FC = () => {
     }
   };
 
+  const toFlashcardType = (value: string): FlashcardTypes => {
+    switch (value) {
+      case FlashcardTypes[FlashcardTypes.Single]:
+        return FlashcardTypes.Single;
+      case FlashcardTypes[FlashcardTypes.Multi]:
+        return FlashcardTypes.Multi;
+      case FlashcardTypes[FlashcardTypes.Flip]:
+        return FlashcardTypes.Flip;
+      default:
+        throw new Error("Invalid FlashcardTypes value: " + value);
+    }
+  };
+
   return (
     <div className="deck-container">
       {/* Loading and Updating Indicators */}
@@ -134,7 +147,7 @@ const Deck: React.FC = () => {
         <label>Card Type: </label>
         <select
           onChange={(e) =>
-            handleCardTypeChange(e.target.value as FlashcardTypes)
+            handleCardTypeChange(toFlashcardType(e.target.value))
           }
         >
           <option value={FlashcardTypes.Single}>Single Answer</option>
