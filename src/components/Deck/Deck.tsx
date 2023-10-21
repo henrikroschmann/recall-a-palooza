@@ -86,8 +86,8 @@ const Deck: React.FC = () => {
     }
   };
 
-  const [createDeck, { isLoading: isCreating }] = useCreatePostMutation();
-  const [updateDeck, { isLoading: isUpdating }] = useUpdateDeckByIdMutation();
+  const [createDeck] = useCreatePostMutation();
+  const [updateDeck] = useUpdateDeckByIdMutation();
 
   const saveDeck = () => {
     if (deckId) {
