@@ -124,11 +124,11 @@ const Deck: React.FC = () => {
 
   const toFlashcardType = (value: string): FlashcardTypes => {
     switch (value) {
-      case FlashcardTypes[FlashcardTypes.Single]:
+      case "1":
         return FlashcardTypes.Single;
-      case FlashcardTypes[FlashcardTypes.Multi]:
+      case "2":
         return FlashcardTypes.Multi;
-      case FlashcardTypes[FlashcardTypes.Flip]:
+      case "3":
         return FlashcardTypes.Flip;
       default:
         throw new Error("Invalid FlashcardTypes value: " + value);
