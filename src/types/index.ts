@@ -6,22 +6,30 @@ export interface Deck {
 export interface Flashcard {
   id: string;
   question: string;
-  options: string[];
+  options: string[]; // For multi answer
   answer: string;
+  flipSide?: string; // For flip cards
   interval: number;
+  type: FlashcardTypes;
   lastReviewed?: Date | null;
+}
+
+export enum FlashcardTypes {
+  Single = 1,
+  Multi = 2,
+  Flip = 3,
 }
 
 export type Rating = "easy" | "medium" | "hard";
 
 export interface SessionBrief {
   sessionId: string;
-  deckId: string;  
+  deckId: string;
 }
 
 export interface Session {
-  id?: string,
-  data: SessionData[]
+  id?: string;
+  data: SessionData[];
 }
 
 export interface SessionData {

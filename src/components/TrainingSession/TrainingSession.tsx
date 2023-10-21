@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Deck, Flashcard, SessionData } from "../../types";
+import { Deck, Flashcard, FlashcardTypes, SessionData } from "../../types";
 import "./TrainingSession.css";
 import {
   useGetDeckByIdQuery,
@@ -22,6 +22,7 @@ const TrainingSession: React.FC = () => {
   const navigate = useNavigate();
   const [hasAnswered, setHasAnswered] = useState<boolean>(false);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [isCardFlipped, setIsCardFlipped] = useState<boolean>(false); // For flip card type
 
   const submitAnswer = (answer: string) => {
     setUserAnswer(answer);
@@ -31,6 +32,11 @@ const TrainingSession: React.FC = () => {
         setHasAnswered(true);
       }
     }
+  };
+
+  const flipCard = () => {
+    setIsCardFlipped(!isCardFlipped);
+    setHasAnswered(true);
   };
 
   useEffect(() => {
@@ -65,6 +71,7 @@ const TrainingSession: React.FC = () => {
 
   const handleRating = (rating: "easy" | "medium" | "hard") => {
     if (currentCard) {
+      setIsCardFlipped(false);
       const correct = userAnswer === currentCard.answer;
       let newInterval = 1;
       if (correct)
@@ -112,7 +119,10 @@ const TrainingSession: React.FC = () => {
           id: sessionId,
           question: currentCard.question,
           timeToAnswer,
-          correct: userAnswer === currentCard.answer,
+          correct:
+            currentCard.type == FlashcardTypes.Flip
+              ? true
+              : userAnswer === currentCard.answer,
           rating,
         },
       ]);
@@ -159,11 +169,19 @@ const TrainingSession: React.FC = () => {
 
       {currentCard ? (
         <>
-          <div className="question-box">
-            <Markdown>{currentCard.question}</Markdown>
-          </div>
+          {!isCardFlipped && (
+            <div className="question-box">
+              <Markdown>
+                {!isCardFlipped
+                  ? currentCard.question
+                  : currentCard.type == FlashcardTypes.Flip
+                  ? currentCard.flipSide
+                  : currentCard.question}
+              </Markdown>
+            </div>
+          )}
 
-          {currentCard.options && currentCard.options.length > 1 ? (
+          {currentCard.type == FlashcardTypes.Multi && currentCard.options && (
             <div className="multiple-choice">
               {currentCard.options.map((option, index) => (
                 <button
@@ -175,7 +193,9 @@ const TrainingSession: React.FC = () => {
                 </button>
               ))}
             </div>
-          ) : (
+          )}
+
+          {currentCard.type == FlashcardTypes.Single && (
             <div className="answer-box">
               <label>
                 Your Answer:
@@ -183,12 +203,24 @@ const TrainingSession: React.FC = () => {
                   value={userAnswer}
                   onChange={(e) => {
                     setUserAnswer(e.target.value);
-                    setHasAnswered(e.target.value.trim() !== ""); // Set hasAnswered based on textarea content
+                    setHasAnswered(e.target.value.trim() !== "");
                   }}
                   rows={4}
                 />
               </label>
             </div>
+          )}
+
+          {isCardFlipped && (
+            <div className="question-box">
+              <Markdown>{currentCard.answer}</Markdown>
+            </div>
+          )}
+
+          {currentCard.type == FlashcardTypes.Flip && (
+            <button className="flip-btn" onClick={flipCard}>
+              Flip Card
+            </button>
           )}
 
           {hasAnswered && (
