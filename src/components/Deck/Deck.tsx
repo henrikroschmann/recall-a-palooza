@@ -1,7 +1,7 @@
-import React, { useState, FormEvent, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Link, useParams } from "react-router-dom";
-import { Flashcard } from "../../types";
+import { Flashcard, FlashcardTypes } from "../../types";
 import "./Deck.css";
 import {
   useCreatePostMutation,
@@ -12,38 +12,51 @@ import {
 const Deck: React.FC = () => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [question, setQuestion] = useState<string>("");
-  const [answers, setAnswers] = useState<string[]>([]);
-  const { deckId = "" } = useParams<{ deckId?: string }>();
-  const [newDeckId, setNewDeckId] = useState<string>("");
-  const [isMultipleChoice, setIsMultipleChoice] = useState<boolean>(false);
+  const [answers, setAnswers] = useState<string[]>([""]); // Initialize with one empty string for the Single and Flip types
   const [selectedCorrectAnswer, setSelectedCorrectAnswer] = useState<
     number | null
   >(null);
-  const {
-    data: fetchedDeck,
-    isLoading,  
-  } = useGetDeckByIdQuery(deckId, {
-    skip: !deckId
+  const [type, setType] = useState<FlashcardTypes>(FlashcardTypes.Single);
+  const { deckId = "" } = useParams<{ deckId?: string }>();
+  const [newDeckId, setNewDeckId] = useState<string>("");
+  const [flipSide, setFlipSide] = useState<string>("");
+  const { data: fetchedDeck, isLoading } = useGetDeckByIdQuery(deckId, {
+    skip: !deckId,
   });
 
   useEffect(() => {
     if (fetchedDeck) {
-      // Only update the state if data was actually fetched
       setFlashcards(fetchedDeck.cards);
     }
   }, [fetchedDeck]);
+
+  const resetForm = () => {
+    setQuestion("");
+    setAnswers([""]);
+    setSelectedCorrectAnswer(null);
+    setFlipSide("");
+  };
+
+  const handleCardTypeChange = (selectedType: FlashcardTypes) => {
+    setType(selectedType);
+    resetForm(); // Reset the form when switching card types
+  };
 
   const handleAnswerChange = (
     event: React.ChangeEvent<HTMLTextAreaElement>,
     index: number
   ) => {
-    const newAnswers = [...answers];
-    newAnswers[index] = event.target.value;
-    setAnswers(newAnswers);
+    const updatedAnswers = [...answers];
+    updatedAnswers[index] = event.target.value;
+    setAnswers(updatedAnswers);
   };
 
   const handleAddAnswer = () => {
     setAnswers([...answers, ""]);
+  };
+
+  const handleRemoveAnswer = (index: number) => {
+    setAnswers((prevAnswers) => prevAnswers.filter((_, idx) => idx !== index));
   };
 
   const handleRemoveCard = (cardId: string) => {
@@ -51,52 +64,30 @@ const Deck: React.FC = () => {
     setFlashcards(updatedCards);
   };
 
-  const handleRemoveAnswer = (index: number) => {
-    const newAnswers = answers.filter((_, idx) => idx !== index);
-    setAnswers(newAnswers);
-  };
-
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-
-    // Check for single answer card
-    if (!isMultipleChoice && question && answers.length === 1) {
-      const newCard = {
+    if (question && (answers[0] || flipSide)) {
+      // Ensuring there's a question and at least one answer
+      const newCard: Flashcard = {
         id: uuidv4(),
         question,
-        options: [answers[0]],
-        answer: answers[0],
+        options: type == FlashcardTypes.Multi ? answers : [],
+        answer:
+          type == FlashcardTypes.Flip
+            ? flipSide
+            : type == FlashcardTypes.Multi
+            ? answers[selectedCorrectAnswer!]
+            : answers[0],
         interval: 1,
+        type,
       };
-
-      setFlashcards((prevCards) => [...prevCards, newCard]);
-      setQuestion("");
-      setAnswers([]);
-    }
-    // Check for multiple choice card
-    else if (
-      isMultipleChoice &&
-      question &&
-      answers.length &&
-      selectedCorrectAnswer !== null
-    ) {
-      const newCard = {
-        id: uuidv4(),
-        question,
-        options: answers,
-        answer: answers[selectedCorrectAnswer],
-        interval: 1,
-      };
-
-      setFlashcards((prevCards) => [...prevCards, newCard]);
-      setQuestion("");
-      setAnswers([]);
-      setSelectedCorrectAnswer(null); // Reset the selected answer
+      setFlashcards((prev) => [...prev, newCard]);
+      resetForm();
     }
   };
 
-  const [createDeck, { isLoading: isCreating }] = useCreatePostMutation();
-  const [updateDeck, { isLoading: isUpdating }] = useUpdateDeckByIdMutation();
+  const [createDeck] = useCreatePostMutation();
+  const [updateDeck] = useUpdateDeckByIdMutation();
 
   const saveDeck = () => {
     if (deckId) {
@@ -133,38 +124,52 @@ const Deck: React.FC = () => {
 
   return (
     <div className="deck-container">
+      {/* Loading and Updating Indicators */}
       {isLoading && <p>Loading deck...</p>}
-      {isCreating && <p>Creating deck...</p>}
-      {isUpdating && <p>Updating deck...</p>}
+
       <h2>Create a Deck</h2>
-      {/* Toggle between Multiple Choice and Single Answer */}
-      <button
-        type="button"
-        onClick={() => setIsMultipleChoice(!isMultipleChoice)}
-      >
-        {isMultipleChoice
-          ? "Switch to Single Answer"
-          : "Switch to Multiple Choice"}
-      </button>
+
+      {/* Card type selection */}
+      <div>
+        <label>Card Type: </label>
+        <select
+          onChange={(e) =>
+            handleCardTypeChange(e.target.value as FlashcardTypes)
+          }
+        >
+          <option value={FlashcardTypes.Single}>Single Answer</option>
+          <option value={FlashcardTypes.Multi}>Multiple Choice</option>
+          <option value={FlashcardTypes.Flip}>Flip Card</option>
+        </select>
+      </div>
 
       {/* Flashcard Form */}
       <form onSubmit={handleSubmit}>
+        {/* Question Field */}
         <div className="form-group">
           <label>Question</label>
           <textarea
-            aria-label="Question"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
           />
         </div>
 
-        {/* Conditionally render input fields based on isMultipleChoice */}
-        {isMultipleChoice ? (
+        {/* Answer Fields based on Card Type */}
+        {type == FlashcardTypes.Single && (
+          <div className="form-group">
+            <label>Answer</label>
+            <textarea
+              value={answers[0]}
+              onChange={(e) => handleAnswerChange(e, 0)}
+            />
+          </div>
+        )}
+
+        {type == FlashcardTypes.Multi &&
           answers.map((answer, idx) => (
             <div key={idx} className="form-group">
-              <label>Option {idx + 1}</label>
+              <label>{`Option ${idx + 1}`}</label>
               <textarea
-                aria-label="Options"
                 value={answer}
                 onChange={(e) => handleAnswerChange(e, idx)}
               />
@@ -172,55 +177,63 @@ const Deck: React.FC = () => {
                 Remove
               </button>
               <input
-                aria-label="select-option"
                 type="radio"
                 name="correct-answer"
                 value={idx}
                 checked={selectedCorrectAnswer === idx}
-                onChange={(e) =>
-                  setSelectedCorrectAnswer(parseInt(e.target.value))
-                }
+                onChange={() => setSelectedCorrectAnswer(idx)}
               />{" "}
               Mark as Correct
             </div>
-          ))
-        ) : (
-          <div className="form-group">
-            <label>Answer</label>
-            <textarea
-              aria-label="answer"
-              value={answers[0] || ""}
-              onChange={(e) => setAnswers([e.target.value])}
-            />
-          </div>
-        )}
+          ))}
 
-        {isMultipleChoice && (
+        {type == FlashcardTypes.Multi && (
           <button type="button" onClick={handleAddAnswer}>
             Add Option
           </button>
         )}
 
+        {type == FlashcardTypes.Flip && (
+          <div className="form-group">
+            <label>Flip Side</label>
+            <textarea
+              value={flipSide}
+              onChange={(e) => setFlipSide(e.target.value)}
+            />
+          </div>
+        )}
+
         <button type="submit">Add Flashcard</button>
       </form>
+
       <button className="save-btn" onClick={saveDeck}>
         Save Deck
       </button>
+
       {(deckId || newDeckId) && (
-        <Link className="train-link" to={`/train/${deckId || newDeckId}`}>
-          Train on this Deck
-        </Link>
+        <div>
+          <Link className="train-link" to={`/train/${deckId || newDeckId}`}>
+            Train on this Deck
+          </Link>
+          <Link className="edit-link" to={`/deck/${deckId || newDeckId}`}>
+            Edit this Deck
+          </Link>
+        </div>
       )}
 
+      {/* Flashcards List */}
       <h3>Flashcards in this deck:</h3>
       <ul className="flashcard-list">
-        {flashcards?.length > 0 &&
-          flashcards.map((card, index) => (
-            <li key={index}>
-              Q: {card.question} <br /> A: {card.options.join(", ")}
-              <button onClick={() => handleRemoveCard(card.id)}>Remove</button>
-            </li>
-          ))}
+        {flashcards.map((card, index) => (
+          <li key={index}>
+            Q: {card.question} <br />
+            A:{" "}
+            {card.type == FlashcardTypes.Flip
+              ? card.answer
+              : card.options.join(", ")}
+            <button onClick={() => handleRemoveCard(card.id)}>Remove</button>
+          </li>
+        ))}
       </ul>
     </div>
   );

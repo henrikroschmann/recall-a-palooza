@@ -6,6 +6,7 @@ const FlashcardSchema = new mongoose.Schema({
     answer: { type: String, required: true },
     options: [{ type: String }],
     interval: { type: Number, default: null },
+    type: { type: Number, required: true },
     lastReviewed: { type: Date, default: null }
 });
 
