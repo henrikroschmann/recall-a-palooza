@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Deck, Flashcard, FlashcardTypes, SessionData } from "../../types";
 import "./TrainingSession.css";
 import {
@@ -157,100 +157,137 @@ const TrainingSession: React.FC = () => {
           console.error("Failed to save session:", error);
         }
       };
-      void session();
-    }
+      void session().then(() => {
+        // store training sessions locally
+        const item = localStorage.getItem("session-cloud");
+        const sessionCloud: { value: string; priority: number }[] =
+          item && item !== ""
+            ? (JSON.parse(item) as { value: string; priority: number }[])
+            : [];
 
-    navigate(`/training-report/${sessionId}`);
+        // Find existing session with the same deckId
+        const session = sessionCloud.find((s) => s.value === deckId);
+
+        if (session) {
+          // If found, increment priority
+          session.priority = session.priority >= 9 ? 9 : session.priority + 1;
+        } else {
+          // If not found, push a new session with initial priority of 1
+          sessionCloud.push({ value: deckId!, priority: 1 });
+        }
+
+        localStorage.setItem("session-cloud", JSON.stringify(sessionCloud));
+        navigate(`/training-report/${sessionId}`);
+      });
+    }
   };
 
   return (
-    <div className="training-container">
-      <h2>Training Session</h2>
+    <>
+      <div className="logo-container">
+        <Link to="/">
+          <img src="/palooza.png" alt="Recall a plooza" className="logo" />
+        </Link>
+      </div>
 
-      {currentCard ? (
-        <>
-          {!isCardFlipped && (
-            <div className="question-box">
-              <Markdown>
-                {!isCardFlipped
-                  ? currentCard.question
-                  : currentCard.type == FlashcardTypes.Flip
-                  ? currentCard.flipSide
-                  : currentCard.question}
-              </Markdown>
-            </div>
-          )}
+      <div className="training-container">
+        <h2>Training Session</h2>
 
-          {currentCard.type == FlashcardTypes.Multi && currentCard.options && (
-            <div className="multiple-choice">
-              {currentCard.options.map((option, index) => (
+        {currentCard ? (
+          <>
+            {!isCardFlipped && (
+              <div className="question-box">
+                <Markdown>
+                  {!isCardFlipped
+                    ? currentCard.question
+                    : currentCard.type == FlashcardTypes.Flip
+                    ? currentCard.flipSide
+                    : currentCard.question}
+                </Markdown>
+              </div>
+            )}
+
+            {currentCard.type == FlashcardTypes.Multi &&
+              currentCard.options && (
+                <div className="multiple-choice">
+                  {currentCard.options.map((option, index) => (
+                    <button
+                      key={index}
+                      className={option === selectedAnswer ? "active" : ""}
+                      onClick={() => submitAnswer(option)}
+                    >
+                      <Markdown>{option}</Markdown>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+            {currentCard.type == FlashcardTypes.Single && (
+              <div className="answer-box">
+                <label>
+                  Your Answer:
+                  <textarea
+                    value={userAnswer}
+                    onChange={(e) => {
+                      setUserAnswer(e.target.value);
+                      setHasAnswered(e.target.value.trim() !== "");
+                    }}
+                    rows={4}
+                  />
+                </label>
+              </div>
+            )}
+
+            {isCardFlipped && (
+              <div className="question-box">
+                <Markdown>{currentCard.answer}</Markdown>
+              </div>
+            )}
+
+            {currentCard.type == FlashcardTypes.Flip && (
+              <button className="flip-btn" onClick={flipCard}>
+                Flip Card
+              </button>
+            )}
+
+            {hasAnswered && (
+              <div className="rating-buttons">
                 <button
-                  key={index}
-                  className={option === selectedAnswer ? "active" : ""}
-                  onClick={() => submitAnswer(option)}
+                  className="easy-btn"
+                  onClick={() => handleRating("easy")}
                 >
-                  <Markdown>{option}</Markdown>
+                  Easy
                 </button>
-              ))}
-            </div>
-          )}
-
-          {currentCard.type == FlashcardTypes.Single && (
-            <div className="answer-box">
-              <label>
-                Your Answer:
-                <textarea
-                  value={userAnswer}
-                  onChange={(e) => {
-                    setUserAnswer(e.target.value);
-                    setHasAnswered(e.target.value.trim() !== "");
-                  }}
-                  rows={4}
-                />
-              </label>
-            </div>
-          )}
-
-          {isCardFlipped && (
-            <div className="question-box">
-              <Markdown>{currentCard.answer}</Markdown>
-            </div>
-          )}
-
-          {currentCard.type == FlashcardTypes.Flip && (
-            <button className="flip-btn" onClick={flipCard}>
-              Flip Card
+                <button
+                  className="medium-btn"
+                  onClick={() => handleRating("medium")}
+                >
+                  Medium
+                </button>
+                <button
+                  className="hard-btn"
+                  onClick={() => handleRating("hard")}
+                >
+                  Hard
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="end-session">
+            <p>
+              No flashcards available for review today. Please come back later.
+            </p>
+            <button className="end-session-btn" onClick={handleEndSession}>
+              End Session
             </button>
-          )}
-
-          {hasAnswered && (
-            <div className="rating-buttons">
-              <button className="easy-btn" onClick={() => handleRating("easy")}>
-                Easy
-              </button>
-              <button
-                className="medium-btn"
-                onClick={() => handleRating("medium")}
-              >
-                Medium
-              </button>
-              <button className="hard-btn" onClick={() => handleRating("hard")}>
-                Hard
-              </button>
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="end-session">
-          <p>
-            No flashcards available for review today. Please come back later.
-          </p>
-          <button className="end-session-btn" onClick={handleEndSession}>
-            End Session
-          </button>
-        </div>
-      )}
-    </div>
+          </div>
+        )}
+        <Link className="edit-link" to={`/deck/${deckId!}`}>
+          Edit this Deck
+        </Link>
+      </div>
+    </>
   );
 };
 
