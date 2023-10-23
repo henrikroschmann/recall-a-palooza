@@ -6,11 +6,33 @@
 
 Recall-a-palooza is a web application built using React that helps you create and review flashcards for spaced repetition learning. It provides features for creating decks of flashcards, conducting training sessions, and reviewing your progress.
 
+
+## Screenshots
+
+Recall-a-palooza offers an intuitive interface for creating and reviewing flashcards. Here's a sneak peek:
+
+### Deck Creation
+Easily create new decks and add flashcards to them. Each flashcard consists of a question and its corresponding answer.
+
+![Deck Creation](path-to-your-image/deck-creation.png)
+
+### Training Sessions
+Select a deck and start a training session. Review each flashcard and rate your performance. The app uses spaced repetition to enhance your learning efficiency.
+
+![Training Session](path-to-your-image/training-session.png)
+
+### Training Reports
+After completing a training session, access detailed reports showcasing your performance metrics, including response times and correctness.
+
+![Training Report](path-to-your-image/training-report.png)
+
+
 ## Table of Contents
 
 - [Getting Started](#getting-started)
 - [Usage](#usage)
 - [Features](#features)
+- [Docker Deployment](#docker-deployment)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -65,6 +87,50 @@ Recall-a-palooza provides the following functionality:
 - Create and manage flashcard decks.
 - Conduct spaced repetition training sessions.
 - Track and analyze your training progress with reports.
+
+## Docker Deployment
+
+To deploy Recall-a-palooza using Docker Compose, use the following `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  frontend:
+    image: ghcr.io/henrikroschmann/recall-a-palooza:latest
+    command: npm run preview --prefix /app/frontend
+    ports:
+      - "8081:8081"
+    depends_on:
+      - backend
+
+  backend:
+    image: ghcr.io/henrikroschmann/recall-a-palooza:latest
+    environment:
+      MONGO_URI: "mongodb://mongo:27017/palooza"
+    ports:
+      - "3066:3066"
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - /store/docker-configs/palooza:/data/db
+
+volumes:
+  mongodata:
+```
+
+Once you have the `docker-compose.yml` in place, run:
+
+```bash
+docker-compose up
+```
+
+This will start Recall-a-palooza's frontend, backend, and a MongoDB instance.
 
 ## Contributing
 
