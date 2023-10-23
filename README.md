@@ -12,20 +12,26 @@ Recall-a-palooza is a web application built using React that helps you create an
 Recall-a-palooza offers an intuitive interface for creating and reviewing flashcards. Here's a sneak peek:
 
 ### Deck Creation
-Easily create new decks and add flashcards to them. Each flashcard consists of a question and its corresponding answer.
+Easily create new decks and add flashcards to them. Each flashcard consists of a question and its corresponding answer
 
-![Deck Creation](path-to-your-image/deck-creation.png)
+![Deck Creation](https://github.com/henrikroschmann/recall-a-palooza/assets/17333/4dfc6678-708d-4fb0-a69c-dd4105e2edf5)
+
+![Muti Answer](https://github.com/henrikroschmann/recall-a-palooza/assets/17333/2c492a4f-8adb-40c2-8682-11ea83654165)
+
+![Flipcards and removal ](https://github.com/henrikroschmann/recall-a-palooza/assets/17333/512bba3a-c692-423d-b9ee-aa1727066728)
+
 
 ### Training Sessions
 Select a deck and start a training session. Review each flashcard and rate your performance. The app uses spaced repetition to enhance your learning efficiency.
 
-![Training Session](path-to-your-image/training-session.png)
+![Training Session](https://github.com/henrikroschmann/recall-a-palooza/assets/17333/03901f98-e9a1-4287-bc41-5655dde032e5)
+![Training Session2](https://github.com/henrikroschmann/recall-a-palooza/assets/17333/384a6606-50c6-4a04-901e-0b368e2ff007)
+
 
 ### Training Reports
 After completing a training session, access detailed reports showcasing your performance metrics, including response times and correctness.
 
-![Training Report](path-to-your-image/training-report.png)
-
+![Training Report](https://github.com/henrikroschmann/recall-a-palooza/assets/17333/dcd4fe1d-a7c1-45d4-985e-a7e55d72f8e6)
 
 ## Table of Contents
 
