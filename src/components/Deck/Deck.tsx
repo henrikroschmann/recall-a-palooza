@@ -250,18 +250,13 @@ const Deck: React.FC = () => {
         <ul className="flashcard-list">
           {flashcards.map((card, index) => (
             <li key={index}>
-              <span
-                className="close-icon"
-                onClick={() => handleRemoveCard(card.id)}
-              >
-                ×
-              </span>
               Q: {card.question} <br />
               A:{" "}
               {card.type == FlashcardTypes.Flip
                 ? card.answer
                 : card.options.join(", ")}
               <br />
+              <button onClick={() => handleRemoveCard(card.id)}>Remove card</button>
             </li>
           ))}
         </ul>
