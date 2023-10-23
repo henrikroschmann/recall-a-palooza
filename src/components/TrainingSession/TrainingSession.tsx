@@ -21,12 +21,10 @@ const TrainingSession: React.FC = () => {
   const [sessionId, setSessionId] = useState<string>("");
   const navigate = useNavigate();
   const [hasAnswered, setHasAnswered] = useState<boolean>(false);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isCardFlipped, setIsCardFlipped] = useState<boolean>(false); // For flip card type
 
   const submitAnswer = (answer: string) => {
     setUserAnswer(answer);
-    setSelectedAnswer(answer); // Set the selected answer
     if (currentCard) {
       if ("options" in currentCard && currentCard.options) {
         setHasAnswered(true);
@@ -210,15 +208,17 @@ const TrainingSession: React.FC = () => {
             {currentCard.type == FlashcardTypes.Multi &&
               currentCard.options && (
                 <div className="multiple-choice">
-                  {currentCard.options.map((option, index) => (
-                    <button
-                      key={index}
-                      className={option === selectedAnswer ? "active" : ""}
-                      onClick={() => submitAnswer(option)}
-                    >
-                      <Markdown>{option}</Markdown>
-                    </button>
-                  ))}
+                  {[...currentCard.options]
+                    .sort(() => Math.random() - 0.5)
+                    .map((option, index) => (
+                      <button
+                        key={index}
+                        className={option === userAnswer ? "active" : ""}
+                        onClick={() => submitAnswer(option)}
+                      >
+                        <Markdown>{option}</Markdown>
+                      </button>
+                    ))}
                 </div>
               )}
 
