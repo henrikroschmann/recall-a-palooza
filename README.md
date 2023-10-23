@@ -1,16 +1,44 @@
 # Recall-a-palooza
 
-**Version:** 0.0.0
+**Version:** 0.0.1
 
 **Type:** Module
 
 Recall-a-palooza is a web application built using React that helps you create and review flashcards for spaced repetition learning. It provides features for creating decks of flashcards, conducting training sessions, and reviewing your progress.
+
+
+## Screenshots
+
+Recall-a-palooza offers an intuitive interface for creating and reviewing flashcards. Here's a sneak peek:
+
+### Deck Creation
+Easily create new decks and add flashcards to them. Each flashcard consists of a question and its corresponding answer
+
+![Deck Creation](https://github.com/henrikroschmann/recall-a-palooza/assets/17333/4dfc6678-708d-4fb0-a69c-dd4105e2edf5)
+
+![Muti Answer](https://github.com/henrikroschmann/recall-a-palooza/assets/17333/2c492a4f-8adb-40c2-8682-11ea83654165)
+
+![Flipcards and removal ](https://github.com/henrikroschmann/recall-a-palooza/assets/17333/512bba3a-c692-423d-b9ee-aa1727066728)
+
+
+### Training Sessions
+Select a deck and start a training session. Review each flashcard and rate your performance. The app uses spaced repetition to enhance your learning efficiency.
+
+![Training Session](https://github.com/henrikroschmann/recall-a-palooza/assets/17333/03901f98-e9a1-4287-bc41-5655dde032e5)
+![Training Session2](https://github.com/henrikroschmann/recall-a-palooza/assets/17333/384a6606-50c6-4a04-901e-0b368e2ff007)
+
+
+### Training Reports
+After completing a training session, access detailed reports showcasing your performance metrics, including response times and correctness.
+
+![Training Report](https://github.com/henrikroschmann/recall-a-palooza/assets/17333/dcd4fe1d-a7c1-45d4-985e-a7e55d72f8e6)
 
 ## Table of Contents
 
 - [Getting Started](#getting-started)
 - [Usage](#usage)
 - [Features](#features)
+- [Docker Deployment](#docker-deployment)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -65,6 +93,50 @@ Recall-a-palooza provides the following functionality:
 - Create and manage flashcard decks.
 - Conduct spaced repetition training sessions.
 - Track and analyze your training progress with reports.
+
+## Docker Deployment
+
+To deploy Recall-a-palooza using Docker Compose, use the following `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  frontend:
+    image: ghcr.io/henrikroschmann/recall-a-palooza:latest
+    command: npm run preview --prefix /app/frontend
+    ports:
+      - "8081:8081"
+    depends_on:
+      - backend
+
+  backend:
+    image: ghcr.io/henrikroschmann/recall-a-palooza:latest
+    environment:
+      MONGO_URI: "mongodb://mongo:27017/palooza"
+    ports:
+      - "3066:3066"
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - /store/docker-configs/palooza:/data/db
+
+volumes:
+  mongodata:
+```
+
+Once you have the `docker-compose.yml` in place, run:
+
+```bash
+docker-compose up
+```
+
+This will start Recall-a-palooza's frontend, backend, and a MongoDB instance.
 
 ## Contributing
 
