@@ -60,8 +60,10 @@ const Deck: React.FC = () => {
   };
 
   const handleRemoveCard = (cardId: string) => {
-    const updatedCards = flashcards.filter((card) => card.id !== cardId);
-    setFlashcards(updatedCards);
+    if (window.confirm("Are you sure you want to remove this flashcard?")) {
+      const updatedCards = flashcards.filter((card) => card.id !== cardId);
+      setFlashcards(updatedCards);
+    }
   };
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -136,119 +138,135 @@ const Deck: React.FC = () => {
   };
 
   return (
-    <div className="deck-container">
-      {/* Loading and Updating Indicators */}
-      {isLoading && <p>Loading deck...</p>}
-
-      <h2>Create a Deck</h2>
-
-      {/* Card type selection */}
-      <div>
-        <label>Card Type: </label>
-        <select
-          onChange={(e) =>
-            handleCardTypeChange(toFlashcardType(e.target.value))
-          }
-        >
-          <option value={FlashcardTypes.Single}>Single Answer</option>
-          <option value={FlashcardTypes.Multi}>Multiple Choice</option>
-          <option value={FlashcardTypes.Flip}>Flip Card</option>
-        </select>
+    <>
+      <div className="logo-container">
+        <Link to="/">
+          <img src="/palooza.png" alt="Recall a plooza" className="logo" />
+        </Link>
       </div>
+      <div className="deck-container">
+        {/* Loading and Updating Indicators */}
+        {isLoading && <p>Loading deck...</p>}
 
-      {/* Flashcard Form */}
-      <form onSubmit={handleSubmit}>
-        {/* Question Field */}
-        <div className="form-group">
-          <label>Question</label>
-          <textarea
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-          />
-        </div>
+        <h2>Create a Deck</h2>
 
-        {/* Answer Fields based on Card Type */}
-        {type == FlashcardTypes.Single && (
-          <div className="form-group">
-            <label>Answer</label>
-            <textarea
-              value={answers[0]}
-              onChange={(e) => handleAnswerChange(e, 0)}
-            />
-          </div>
-        )}
-
-        {type == FlashcardTypes.Multi &&
-          answers.map((answer, idx) => (
-            <div key={idx} className="form-group">
-              <label>{`Option ${idx + 1}`}</label>
-              <textarea
-                value={answer}
-                onChange={(e) => handleAnswerChange(e, idx)}
-              />
-              <button type="button" onClick={() => handleRemoveAnswer(idx)}>
-                Remove
-              </button>
-              <input
-                type="radio"
-                name="correct-answer"
-                value={idx}
-                checked={selectedCorrectAnswer === idx}
-                onChange={() => setSelectedCorrectAnswer(idx)}
-              />{" "}
-              Mark as Correct
-            </div>
-          ))}
-
-        {type == FlashcardTypes.Multi && (
-          <button type="button" onClick={handleAddAnswer}>
-            Add Option
-          </button>
-        )}
-
-        {type == FlashcardTypes.Flip && (
-          <div className="form-group">
-            <label>Flip Side</label>
-            <textarea
-              value={flipSide}
-              onChange={(e) => setFlipSide(e.target.value)}
-            />
-          </div>
-        )}
-
-        <button type="submit">Add Flashcard</button>
-      </form>
-
-      <button className="save-btn" onClick={saveDeck}>
-        Save Deck
-      </button>
-
-      {(deckId || newDeckId) && (
+        {/* Card type selection */}
         <div>
-          <Link className="train-link" to={`/train/${deckId || newDeckId}`}>
-            Train on this Deck
-          </Link>
-          <Link className="edit-link" to={`/deck/${deckId || newDeckId}`}>
-            Edit this Deck
-          </Link>
+          <label>Card Type: </label>
+          <select
+            title="card Type"
+            onChange={(e) =>
+              handleCardTypeChange(toFlashcardType(e.target.value))
+            }
+          >
+            <option value={FlashcardTypes.Single}>Single Answer</option>
+            <option value={FlashcardTypes.Multi}>Multiple Choice</option>
+            <option value={FlashcardTypes.Flip}>Flip Card</option>
+          </select>
         </div>
-      )}
 
-      {/* Flashcards List */}
-      <h3>Flashcards in this deck:</h3>
-      <ul className="flashcard-list">
-        {flashcards.map((card, index) => (
-          <li key={index}>
-            Q: {card.question} <br />
-            A:{" "}
-            {card.type == FlashcardTypes.Flip
-              ? card.answer
-              : card.options.join(", ")}
-            <button onClick={() => handleRemoveCard(card.id)}>Remove</button>
-          </li>
-        ))}
-      </ul>
-    </div>
+        {/* Flashcard Form */}
+        <form onSubmit={handleSubmit}>
+          {/* Question Field */}
+          <div className="form-group">
+            <label>Question</label>
+            <textarea
+              title="question"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+            />
+          </div>
+
+          {/* Answer Fields based on Card Type */}
+          {type == FlashcardTypes.Single && (
+            <div className="form-group">
+              <label>Answer</label>
+              <textarea
+                title="answer"
+                value={answers[0]}
+                onChange={(e) => handleAnswerChange(e, 0)}
+              />
+            </div>
+          )}
+
+          {type == FlashcardTypes.Multi &&
+            answers.map((answer, idx) => (
+              <div key={idx} className="form-group">
+                <label>{`Option ${idx + 1}`}</label>
+                <textarea
+                  title="answer"
+                  value={answer}
+                  onChange={(e) => handleAnswerChange(e, idx)}
+                />
+                <button type="button" onClick={() => handleRemoveAnswer(idx)}>
+                  Remove
+                </button>
+                <input
+                  aria-label="radio input"
+                  type="radio"
+                  name="correct-answer"
+                  value={idx}
+                  checked={selectedCorrectAnswer === idx}
+                  onChange={() => setSelectedCorrectAnswer(idx)}
+                />{" "}
+                Mark as Correct
+              </div>
+            ))}
+
+          {type == FlashcardTypes.Multi && (
+            <button type="button" onClick={handleAddAnswer}>
+              Add Option
+            </button>
+          )}
+
+          {type == FlashcardTypes.Flip && (
+            <div className="form-group">
+              <label>Flip Side</label>
+              <textarea
+                title="flipside"
+                value={flipSide}
+                onChange={(e) => setFlipSide(e.target.value)}
+              />
+            </div>
+          )}
+
+          <button type="submit">Add Flashcard</button>
+        </form>
+
+        <button className="save-btn" onClick={saveDeck}>
+          {deckId ? "Update Deck" : "Save Deck"}
+        </button>
+
+        {(deckId || newDeckId) && (
+          <div>
+            <Link className="train-link" to={`/train/${deckId || newDeckId}`}>
+              Train on this Deck
+            </Link>
+          </div>
+        )}
+
+        {/* Flashcards List */}
+        <h3>Flashcards in this deck:</h3>
+        <ul className="flashcard-list">
+          {flashcards.map((card, index) => (
+            <li key={index}>
+              <span
+                className="close-icon"
+                onClick={() => handleRemoveCard(card.id)}
+              >
+                ×
+              </span>
+              Q: {card.question} <br />
+              A:{" "}
+              {card.type == FlashcardTypes.Flip
+                ? card.answer
+                : card.options.join(", ")}
+              <br />
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
   );
 };
 

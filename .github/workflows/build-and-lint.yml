@@ -1,0 +1,41 @@
+name: Build and Lint
+
+on:
+   pull_request:
+     branches: [ "main" ]
+
+
+jobs:
+  build-and-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14' 
+
+    # FRONTEND
+
+    - name: Install frontend dependencies
+      working-directory: ./
+      run: npm install
+
+    - name: Lint frontend code
+      working-directory: ./
+      run: npm run lint
+
+    - name: Build frontend code
+      working-directory: ./
+      run: npm run build
+
+    # BACKEND
+
+    - name: Install backend dependencies
+      working-directory: ./backend
+      run: npm install
+
+

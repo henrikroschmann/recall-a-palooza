@@ -4,9 +4,9 @@
   padding: 2rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
   max-width: 600px;
-  margin: 0 auto;
+  margin: 40px auto;
   color: #333;
-  font-family: 'Arial', sans-serif;
+  font-family: 'Arial', sans-serif;  
 }
 
 .form-group {
@@ -43,6 +43,7 @@ button, .submit-btn, .save-btn {
   cursor: pointer;
   transition: background-color 0.2s, transform 0.2s;
   margin-right: 0.5rem;
+  margin-top: 10px;
 }
 
 button:hover, .submit-btn:hover, .save-btn:hover {
@@ -72,6 +73,7 @@ button:hover, .submit-btn:hover, .save-btn:hover {
 }
 
 .flashcard-list {
+  position: relative;
   list-style-type: none;
   padding: 0;
 }
@@ -86,5 +88,22 @@ button:hover, .submit-btn:hover, .save-btn:hover {
 
 .flashcard-form {
   margin-bottom: 2rem;
+}
+
+.close-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  border-radius: 50%;
+  color: black;
+  font-weight: bold;
+  -webkit-user-select: none;
+  user-select: none; /* So that the "x" doesn't get highlighted on click */
 }
 
