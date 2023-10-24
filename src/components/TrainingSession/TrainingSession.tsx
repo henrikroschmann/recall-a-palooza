@@ -32,13 +32,14 @@ const TrainingSession: React.FC = () => {
       }
     }
   };
-  
+
   useEffect(() => {
     if (currentCard?.options) {
-      setShuffledOptions([...currentCard.options].sort(() => Math.random() - 0.5));
+      setShuffledOptions(
+        [...currentCard.options].sort(() => Math.random() - 0.5)
+      );
     }
   }, [currentCard]);
-
 
   const flipCard = () => {
     setIsCardFlipped(!isCardFlipped);
@@ -49,26 +50,31 @@ const TrainingSession: React.FC = () => {
     setDeck(deckQuery);
   }, [deckId, deckQuery]);
 
+  function shuffle(array: Flashcard[]): Flashcard[] {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
   useEffect(() => {
     if (deck !== undefined) {
-      const initialDeckFlashcards: Flashcard[] =
-        deck?.cards
-          .filter(
-            (card: Flashcard) =>
-              !card.lastReviewed ||
-              new Date().getDate() - new Date(card.lastReviewed).getDate() >=
-                (card.interval || 0)
-          )
-          .sort(
-            (a: Flashcard, b: Flashcard) =>
-              (a.interval || 0) - (b.interval || 0)
-          )
-          .slice(0, 20) ?? [];
+      const eligibleCards = deck.cards.filter(
+        (card: Flashcard) =>
+          !card.lastReviewed ||
+          new Date().getDate() - new Date(card.lastReviewed).getDate() >=
+            (card.interval || 0)
+      );
+
+      const shuffledCards = shuffle([...eligibleCards]);
+
+      const initialDeckFlashcards: Flashcard[] = shuffledCards.slice(0, 20);
 
       setDeckFlashcards(initialDeckFlashcards);
 
       if (initialDeckFlashcards.length > 0) {
-        setCurrentCard(initialDeckFlashcards[0]); // Start with the first card (lowest interval/hardest).
+        setCurrentCard(initialDeckFlashcards[0]); // Start with the first card (now randomly chosen).
       }
 
       setSessionId(`${deckId ?? ""}-session-${Date.now()}`);
