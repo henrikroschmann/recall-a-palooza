@@ -22,6 +22,7 @@ const TrainingSession: React.FC = () => {
   const navigate = useNavigate();
   const [hasAnswered, setHasAnswered] = useState<boolean>(false);
   const [isCardFlipped, setIsCardFlipped] = useState<boolean>(false); // For flip card type
+  const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
 
   const submitAnswer = (answer: string) => {
     setUserAnswer(answer);
@@ -31,6 +32,13 @@ const TrainingSession: React.FC = () => {
       }
     }
   };
+  
+  useEffect(() => {
+    if (currentCard?.options) {
+      setShuffledOptions([...currentCard.options].sort(() => Math.random() - 0.5));
+    }
+  }, [currentCard]);
+
 
   const flipCard = () => {
     setIsCardFlipped(!isCardFlipped);
@@ -205,22 +213,19 @@ const TrainingSession: React.FC = () => {
               </div>
             )}
 
-            {currentCard.type == FlashcardTypes.Multi &&
-              currentCard.options && (
-                <div className="multiple-choice">
-                  {[...currentCard.options]
-                    .sort(() => Math.random() - 0.5)
-                    .map((option, index) => (
-                      <button
-                        key={index}
-                        className={option === userAnswer ? "active" : ""}
-                        onClick={() => submitAnswer(option)}
-                      >
-                        <Markdown>{option}</Markdown>
-                      </button>
-                    ))}
-                </div>
-              )}
+            {currentCard.type == FlashcardTypes.Multi && shuffledOptions && (
+              <div className="multiple-choice">
+                {shuffledOptions.map((option, index) => (
+                  <button
+                    key={index}
+                    className={option === userAnswer ? "active" : ""}
+                    onClick={() => submitAnswer(option)}
+                  >
+                    <Markdown>{option}</Markdown>
+                  </button>
+                ))}
+              </div>
+            )}
 
             {currentCard.type == FlashcardTypes.Single && (
               <div className="answer-box">
