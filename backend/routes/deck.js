@@ -43,6 +43,26 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+router.delete('/:id', async (req, res) => {
+    try {
+        const idValue = req.params.id;
+
+        // Query using 'id' directly
+        const result = await Model.Deck.findOneAndDelete({ id: idValue });  
+
+        if (!result) {
+            res.status(404).json({ message: 'Not Found' });
+        } else {
+            res.send(result);
+        }
+    }
+    catch (error) {
+        console.error("Error deleting deck:", error);  // Log the error to the console
+        res.status(500).json({ message: error.message });
+    }
+});
+
+
 // Update by ID Method
 router.patch('/:id', async (req, res) => {
     try {

@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Flashcard, FlashcardTypes } from "../../types";
 import "./Deck.css";
 import {
   useCreatePostMutation,
+  useDeleteDeckByIdMutation,
   useGetDeckByIdQuery,
   useUpdateDeckByIdMutation,
 } from "../../utils/api/DeckApi";
+import { ToastContainer, toast } from "react-toastify";
 
 const Deck: React.FC = () => {
+  const navigate = useNavigate();
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [question, setQuestion] = useState<string>("");
   const [answers, setAnswers] = useState<string[]>([""]); // Initialize with one empty string for the Single and Flip types
@@ -90,6 +93,7 @@ const Deck: React.FC = () => {
 
   const [createDeck] = useCreatePostMutation();
   const [updateDeck] = useUpdateDeckByIdMutation();
+  const [deleteDeck] = useDeleteDeckByIdMutation();
 
   const saveDeck = () => {
     if (deckId) {
@@ -99,9 +103,30 @@ const Deck: React.FC = () => {
           await updateDeck({
             id: deckId,
             updates: { cards: flashcards },
+          }).then(() => {
+            toast.success("Deck Updated", {
+              position: "bottom-left",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "dark",
+            });
           });
         } catch (error) {
-          console.error("Failed to update deck:", error);
+          toast.error("Failed to update deck", {
+            position: "bottom-left",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+          //console.error("Failed to update deck:", error);
         }
       };
       void update();
@@ -115,12 +140,78 @@ const Deck: React.FC = () => {
           await createDeck({
             id: id,
             cards: flashcards,
+          }).then(() => {
+            toast.success("Deck created", {
+              position: "bottom-left",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "dark",
+            });
           });
         } catch (error) {
-          console.error("Failed to create deck:", error);
+          toast.error("Failed to create deck", {
+            position: "bottom-left",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
         }
       };
       void create();
+    }
+  };
+
+  const handleDeleteDeck = async () => {
+    if (window.confirm("Are you sure you want to delete this deck?")) {
+      try {
+        await deleteDeck({ id: deckId });
+        toast.success("Deck Deleted Successfully", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+
+        // Get training sessions from local storage
+        const item = localStorage.getItem("session-cloud");
+        let sessionCloud: { value: string; priority: number }[] =
+          item && item !== ""
+            ? (JSON.parse(item) as { value: string; priority: number }[])
+            : [];
+
+        // Remove the session with the deleted deckId from the sessionCloud
+        sessionCloud = sessionCloud.filter(
+          (session) => session.value !== deckId
+        );
+
+        // Save the updated sessionCloud back to local storage
+        localStorage.setItem("session-cloud", JSON.stringify(sessionCloud));
+
+        navigate("/");
+      } catch (error) {
+        toast.error("Failed to delete deck", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      }
     }
   };
 
@@ -245,6 +336,12 @@ const Deck: React.FC = () => {
           </div>
         )}
 
+        {deckId && (
+          <button className="delete-btn" onClick={() => {void handleDeleteDeck()}}>
+            Delete Deck
+          </button>
+        )}
+
         {/* Flashcards List */}
         <h3>Flashcards in this deck:</h3>
         <ul className="flashcard-list">
@@ -256,11 +353,25 @@ const Deck: React.FC = () => {
                 ? card.answer
                 : card.options.join(", ")}
               <br />
-              <button onClick={() => handleRemoveCard(card.id)}>Remove card</button>
+              <button onClick={() => handleRemoveCard(card.id)}>
+                Remove card
+              </button>
             </li>
           ))}
         </ul>
       </div>
+      <ToastContainer
+        position="bottom-left"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </>
   );
 };
