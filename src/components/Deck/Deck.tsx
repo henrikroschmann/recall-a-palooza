@@ -8,6 +8,7 @@ import {
   useGetDeckByIdQuery,
   useUpdateDeckByIdMutation,
 } from "../../utils/api/DeckApi";
+import { ToastContainer, toast } from "react-toastify";
 
 const Deck: React.FC = () => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -115,6 +116,8 @@ const Deck: React.FC = () => {
           await createDeck({
             id: id,
             cards: flashcards,
+          }).then(() => {
+            toast("test");
           });
         } catch (error) {
           console.error("Failed to create deck:", error);
@@ -139,6 +142,7 @@ const Deck: React.FC = () => {
 
   return (
     <>
+      <ToastContainer />
       <div className="logo-container">
         <Link to="/">
           <img src="/palooza.png" alt="Recall a plooza" className="logo" />
@@ -256,7 +260,9 @@ const Deck: React.FC = () => {
                 ? card.answer
                 : card.options.join(", ")}
               <br />
-              <button onClick={() => handleRemoveCard(card.id)}>Remove card</button>
+              <button onClick={() => handleRemoveCard(card.id)}>
+                Remove card
+              </button>
             </li>
           ))}
         </ul>
