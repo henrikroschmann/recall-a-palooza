@@ -7,6 +7,7 @@ import TrainingReport from "./components/TrainingReport/TrainingReport";
 import SessionsList from "./components/SessionsList/SessionsList";
 import TagCloud from "./components/Deck/TagCloud/TagCloud";
 import 'react-toastify/dist/ReactToastify.css';
+import ImportExportDecks from "./components/ImportExport/ImportExportDecks";
 
 const App: React.FC = () => {
   return (
@@ -17,6 +18,7 @@ const App: React.FC = () => {
           <Route path="/deck/:deckId" element={<Deck />} />
           <Route path="/sessions-list" element={<SessionsList />} />
           <Route path="/train/:deckId" element={<TrainingSession />} />
+          <Route path="/import" element={<ImportExportDecks />} />
           <Route
             path="/training-report/:sessionId"
             element={<TrainingReport />}
