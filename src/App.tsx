@@ -6,6 +6,7 @@ import Deck from "./components/Deck/Deck";
 import TrainingReport from "./components/TrainingReport/TrainingReport";
 import SessionsList from "./components/SessionsList/SessionsList";
 import TagCloud from "./components/Deck/TagCloud/TagCloud";
+import 'react-toastify/dist/ReactToastify.css';
 
 const App: React.FC = () => {
   return (

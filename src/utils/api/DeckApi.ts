@@ -28,6 +28,12 @@ export const deckApi = createApi({
         body: updates,
       }),
     }),
+    deleteDeckById: builder.mutation<void, { id: string }>({
+      query: ({ id }) => ({
+        url: `${id}`,
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
@@ -36,4 +42,5 @@ export const {
   useFetchAllDecksQuery,
   useCreatePostMutation,
   useUpdateDeckByIdMutation,
+  useDeleteDeckByIdMutation,
 } = deckApi;
