@@ -60,27 +60,52 @@ const TrainingSession: React.FC = () => {
 
   useEffect(() => {
     if (deck !== undefined) {
-      const eligibleCards = deck.cards.filter(
-        (card: Flashcard) =>
-          !card.lastReviewed ||
-          new Date().getDate() - new Date(card.lastReviewed).getDate() >=
-            (card.interval || 0)
+      // Filter cards based on lastReviewed and by interval 1
+      const intervalOneCards = deck.cards.filter(
+        (card) =>
+          (!card.lastReviewed ||
+          new Date(card.lastReviewed).getDate() - new Date().getDate() >= 1) &&
+          card.interval === 1
       );
-
-      const shuffledCards = shuffle([...eligibleCards]);
-
-      const initialDeckFlashcards: Flashcard[] = shuffledCards.slice(0, 20);
-
-      setDeckFlashcards(initialDeckFlashcards);
-
-      if (initialDeckFlashcards.length > 0) {
-        setCurrentCard(initialDeckFlashcards[0]); // Start with the first card (now randomly chosen).
+  
+      // Shuffle and then add cards with interval 2 and 3
+      const intervalTwoThreeCards = shuffle(deck.cards.filter(
+        (card) =>
+          (!card.lastReviewed ||
+          new Date(card.lastReviewed).getDate() - new Date().getDate() >= 1) &&
+          (card.interval === 2 || card.interval === 3)
+      ));
+  
+      // Combine the interval one cards with the shuffled interval two and three cards
+      let combinedCards = [...intervalOneCards, ...intervalTwoThreeCards];
+  
+      // If the combined total is less than 20, shuffle and add the remaining cards
+      if (combinedCards.length < 20) {
+        const remainingCards = shuffle(deck.cards.filter(
+          (card) =>
+            (!card.lastReviewed ||
+            new Date(card.lastReviewed).getDate() - new Date().getDate() >= 1) &&
+            ![1, 2, 3].includes(card.interval)
+        ));
+  
+        combinedCards = [...combinedCards, ...remainingCards].slice(0, 20);
+      } else {
+        combinedCards = combinedCards.slice(0, 20);
       }
-
+  
+      // Update state with the new deck of flashcards
+      setDeckFlashcards(combinedCards);
+  
+      // Set the current card if there are cards in the deck
+      if (combinedCards.length > 0) {
+        setCurrentCard(combinedCards[0]); // Start with the first card.
+      }
+  
+      // Create a new session ID
       setSessionId(`${deckId ?? ""}-session-${Date.now()}`);
     }
   }, [deck, deckId]);
-
+  
   const handleRating = (rating: "easy" | "medium" | "hard") => {
     if (currentCard) {
       setIsCardFlipped(false);
