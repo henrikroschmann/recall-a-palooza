@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Deck, Flashcard, FlashcardTypes, SessionData } from "../../types";
 import "./TrainingSession.css";
 import {
-  useCreatePostMutation,
   useGetDeckByIdQuery,
   useUpdateDeckByIdMutation,
 } from "../../utils/api/DeckApi";
