@@ -337,7 +337,12 @@ const Deck: React.FC = () => {
         )}
 
         {deckId && (
-          <button className="delete-btn" onClick={() => {void handleDeleteDeck()}}>
+          <button
+            className="delete-btn"
+            onClick={() => {
+              void handleDeleteDeck();
+            }}
+          >
             Delete Deck
           </button>
         )}

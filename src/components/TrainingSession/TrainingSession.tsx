@@ -3,11 +3,13 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Deck, Flashcard, FlashcardTypes, SessionData } from "../../types";
 import "./TrainingSession.css";
 import {
+  useCreatePostMutation,
   useGetDeckByIdQuery,
   useUpdateDeckByIdMutation,
 } from "../../utils/api/DeckApi";
-import { useCreatePostMutation } from "../../utils/api/SessionApi";
+
 import Markdown from "react-markdown";
+
 
 const TrainingSession: React.FC = () => {
   const [currentCard, setCurrentCard] = useState<Flashcard | null>(null);
@@ -23,9 +25,11 @@ const TrainingSession: React.FC = () => {
   const [hasAnswered, setHasAnswered] = useState<boolean>(false);
   const [isCardFlipped, setIsCardFlipped] = useState<boolean>(false); // For flip card type
   const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
+  const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
 
   const submitAnswer = (answer: string) => {
     setUserAnswer(answer);
+    setIsAnswerSubmitted(true);
     if (currentCard) {
       if ("options" in currentCard && currentCard.options) {
         setHasAnswered(true);
@@ -64,48 +68,55 @@ const TrainingSession: React.FC = () => {
       const intervalOneCards = deck.cards.filter(
         (card) =>
           (!card.lastReviewed ||
-          new Date(card.lastReviewed).getDate() - new Date().getDate() >= 1) &&
+            new Date(card.lastReviewed).getDate() - new Date().getDate() >=
+              1) &&
           card.interval === 1
       );
-  
+
       // Shuffle and then add cards with interval 2 and 3
-      const intervalTwoThreeCards = shuffle(deck.cards.filter(
-        (card) =>
-          (!card.lastReviewed ||
-          new Date(card.lastReviewed).getDate() - new Date().getDate() >= 1) &&
-          (card.interval === 2 || card.interval === 3)
-      ));
-  
-      // Combine the interval one cards with the shuffled interval two and three cards
-      let combinedCards = [...intervalOneCards, ...intervalTwoThreeCards];
-  
-      // If the combined total is less than 20, shuffle and add the remaining cards
-      if (combinedCards.length < 20) {
-        const remainingCards = shuffle(deck.cards.filter(
+      const intervalTwoThreeCards = shuffle(
+        deck.cards.filter(
           (card) =>
             (!card.lastReviewed ||
-            new Date(card.lastReviewed).getDate() - new Date().getDate() >= 1) &&
-            ![1, 2, 3].includes(card.interval)
-        ));
-  
+              new Date(card.lastReviewed).getDate() - new Date().getDate() >=
+                1) &&
+            (card.interval === 2 || card.interval === 3)
+        )
+      );
+
+      // Combine the interval one cards with the shuffled interval two and three cards
+      let combinedCards = [...intervalOneCards, ...intervalTwoThreeCards];
+
+      // If the combined total is less than 20, shuffle and add the remaining cards
+      if (combinedCards.length < 20) {
+        const remainingCards = shuffle(
+          deck.cards.filter(
+            (card) =>
+              (!card.lastReviewed ||
+                new Date(card.lastReviewed).getDate() - new Date().getDate() >=
+                  1) &&
+              ![1, 2, 3].includes(card.interval)
+          )
+        );
+
         combinedCards = [...combinedCards, ...remainingCards].slice(0, 20);
       } else {
         combinedCards = combinedCards.slice(0, 20);
       }
-  
+
       // Update state with the new deck of flashcards
       setDeckFlashcards(combinedCards);
-  
+
       // Set the current card if there are cards in the deck
       if (combinedCards.length > 0) {
         setCurrentCard(combinedCards[0]); // Start with the first card.
       }
-  
+
       // Create a new session ID
       setSessionId(`${deckId ?? ""}-session-${Date.now()}`);
     }
   }, [deck, deckId]);
-  
+
   const handleRating = (rating: "easy" | "medium" | "hard") => {
     if (currentCard) {
       setIsCardFlipped(false);
@@ -232,6 +243,16 @@ const TrainingSession: React.FC = () => {
 
         {currentCard ? (
           <>
+            {isAnswerSubmitted && (
+              <div
+                className={`toast-notification ${
+                  userAnswer === currentCard.answer ? "correct" : "incorrect"
+                }`}
+              >
+                {userAnswer === currentCard.answer ? "Correct!" : "Incorrect!"}
+              </div>
+            )}
+
             {!isCardFlipped && (
               <div className="question-box">
                 <Markdown>
@@ -249,7 +270,12 @@ const TrainingSession: React.FC = () => {
                 {shuffledOptions.map((option, index) => (
                   <button
                     key={index}
-                    className={option === userAnswer ? "active" : ""}
+                    className={`${
+                      isAnswerSubmitted && option === currentCard.answer
+                        ? "correct-answer"
+                        : ""
+                    } ${option === userAnswer ? "active" : ""}`}
+                    disabled={isAnswerSubmitted}
                     onClick={() => submitAnswer(option)}
                   >
                     <Markdown>{option}</Markdown>
@@ -263,6 +289,7 @@ const TrainingSession: React.FC = () => {
                 <label>
                   Your Answer:
                   <textarea
+                    disabled={isAnswerSubmitted}
                     value={userAnswer}
                     onChange={(e) => {
                       setUserAnswer(e.target.value);
@@ -271,6 +298,12 @@ const TrainingSession: React.FC = () => {
                     rows={4}
                   />
                 </label>
+              </div>
+            )}
+
+            {isAnswerSubmitted && (
+              <div className="answer-box">
+                <Markdown>{currentCard.answer}</Markdown>
               </div>
             )}
 
