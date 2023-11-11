@@ -50,4 +50,5 @@ h2 {
 .report-table tbody td {
   padding: 8px 5px;
   border-bottom: 1px solid #ced4da;
+  color: black;
 }
