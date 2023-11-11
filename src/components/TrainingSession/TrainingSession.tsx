@@ -121,6 +121,7 @@ const TrainingSession: React.FC = () => {
   const handleRating = (rating: "easy" | "medium" | "hard") => {
     if (currentCard) {
       setIsCardFlipped(false);
+      setIsAnswerSubmitted(false);
       const correct = userAnswer === currentCard.answer;
       let newInterval = 1;
       if (correct)
