@@ -109,3 +109,21 @@
 .end-session-btn:hover {
   opacity: 0.9;
 }
+
+.toast-notification {
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.correct {
+  background-color: #4CAF50; /* Green */
+  color: white;
+}
+
+.incorrect {
+  background-color: #f44336; /* Red */
+  color: white;
+}
