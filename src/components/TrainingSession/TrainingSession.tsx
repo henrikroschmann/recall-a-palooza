@@ -69,8 +69,7 @@ const TrainingSession: React.FC = () => {
       const intervalOneCards = deck.cards.filter(
         (card) =>
           (!card.lastReviewed ||
-            new Date(card.lastReviewed).getDate() - new Date().getDate() >=
-              1) &&
+            new Date(card.lastReviewed) < new Date()) &&
           card.interval === 1
       );
 
@@ -79,8 +78,7 @@ const TrainingSession: React.FC = () => {
         deck.cards.filter(
           (card) =>
             (!card.lastReviewed ||
-              new Date(card.lastReviewed).getDate() - new Date().getDate() >=
-                1) &&
+              new Date(card.lastReviewed) < new Date()) &&
             (card.interval === 2 || card.interval === 3)
         )
       );
@@ -94,8 +92,7 @@ const TrainingSession: React.FC = () => {
           deck.cards.filter(
             (card) =>
               (!card.lastReviewed ||
-                new Date(card.lastReviewed).getDate() - new Date().getDate() >=
-                  1) &&
+                new Date(card.lastReviewed) < new Date()) &&
               ![1, 2, 3].includes(card.interval)
           )
         );
