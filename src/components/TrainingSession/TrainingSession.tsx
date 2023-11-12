@@ -64,53 +64,41 @@ const TrainingSession: React.FC = () => {
 
   useEffect(() => {
     if (deck !== undefined) {
-      // Filter cards based on lastReviewed and by interval 1
-      const intervalOneCards = deck.cards.filter(
-        (card) =>
-          (!card.lastReviewed || new Date(card.lastReviewed) < new Date()) &&
-          card.interval === 1
-      );
+      // Retrieve or initialize an array of reviewed card IDs for the current session
+      const reviewedCardIds = new Set(sessionData.map((data) => data.id));
 
-      // Shuffle and then add cards with interval 2 and 3
-      const intervalTwoThreeCards = shuffle(
-        deck.cards.filter(
-          (card) =>
-            (!card.lastReviewed || new Date(card.lastReviewed) < new Date()) &&
-            (card.interval === 2 || card.interval === 3)
-        )
-      );
+      // Updated logic for filtering and selecting cards
+      const selectedCards = deck.cards
+        .filter((card) => !reviewedCardIds.has(card.id)) // Exclude reviewed cards
+        .filter((card) => {
+          const lastReviewedDate = card.lastReviewed
+            ? new Date(card.lastReviewed)
+            : null;
+          const currentDate = new Date();
+          currentDate.setHours(0, 0, 0, 0); // Consider only the date part
+          return (
+            !lastReviewedDate ||
+            lastReviewedDate < currentDate ||
+            card.interval === 1
+          );
+        })
+        .slice(0, 20); // Limit the number of cards
 
-      // Combine the interval one cards with the shuffled interval two and three cards
-      let combinedCards = [...intervalOneCards, ...intervalTwoThreeCards];
+      // Shuffle the selected cards
+      const shuffledCards = shuffle(selectedCards);
 
-      // If the combined total is less than 20, shuffle and add the remaining cards
-      if (combinedCards.length < 20) {
-        const remainingCards = shuffle(
-          deck.cards.filter(
-            (card) =>
-              (!card.lastReviewed ||
-                new Date(card.lastReviewed) < new Date()) &&
-              ![1, 2, 3].includes(card.interval)
-          )
-        );
-
-        combinedCards = [...combinedCards, ...remainingCards].slice(0, 20);
-      } else {
-        combinedCards = combinedCards.slice(0, 20);
+      // Update state
+      setDeckFlashcards(shuffledCards);
+      if (shuffledCards.length > 0) {
+        setCurrentCard(shuffledCards[0]);
       }
 
-      // Update state with the new deck of flashcards
-      setDeckFlashcards(combinedCards);
-
-      // Set the current card if there are cards in the deck
-      if (combinedCards.length > 0) {
-        setCurrentCard(combinedCards[0]); // Start with the first card.
+      // Create a session ID only if it's not already set
+      if (!sessionId) {
+        setSessionId(`${deckId ?? ""}-session-${Date.now()}`);
       }
-
-      // Create a new session ID
-      setSessionId(`${deckId ?? ""}-session-${Date.now()}`);
     }
-  }, [deck, deckId]);
+  }, [deck, deckId, sessionData, sessionId]);
 
   const handleRating = (rating: "easy" | "medium" | "hard") => {
     if (currentCard) {
