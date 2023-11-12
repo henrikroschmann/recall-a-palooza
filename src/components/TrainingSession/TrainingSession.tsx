@@ -11,7 +11,6 @@ import { useCreatePostMutation } from "../../utils/api/SessionApi";
 
 import Markdown from "react-markdown";
 
-
 const TrainingSession: React.FC = () => {
   const [currentCard, setCurrentCard] = useState<Flashcard | null>(null);
   const [userAnswer, setUserAnswer] = useState<string>("");
@@ -68,9 +67,7 @@ const TrainingSession: React.FC = () => {
       // Filter cards based on lastReviewed and by interval 1
       const intervalOneCards = deck.cards.filter(
         (card) =>
-          (!card.lastReviewed ||
-            new Date(card.lastReviewed).getDate() - new Date().getDate() >=
-              1) &&
+          (!card.lastReviewed || new Date(card.lastReviewed) < new Date()) &&
           card.interval === 1
       );
 
@@ -78,9 +75,7 @@ const TrainingSession: React.FC = () => {
       const intervalTwoThreeCards = shuffle(
         deck.cards.filter(
           (card) =>
-            (!card.lastReviewed ||
-              new Date(card.lastReviewed).getDate() - new Date().getDate() >=
-                1) &&
+            (!card.lastReviewed || new Date(card.lastReviewed) < new Date()) &&
             (card.interval === 2 || card.interval === 3)
         )
       );
@@ -94,8 +89,7 @@ const TrainingSession: React.FC = () => {
           deck.cards.filter(
             (card) =>
               (!card.lastReviewed ||
-                new Date(card.lastReviewed).getDate() - new Date().getDate() >=
-                  1) &&
+                new Date(card.lastReviewed) < new Date()) &&
               ![1, 2, 3].includes(card.interval)
           )
         );
