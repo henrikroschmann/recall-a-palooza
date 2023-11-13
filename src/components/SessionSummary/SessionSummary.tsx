@@ -10,6 +10,9 @@ const SessionSummary: React.FC = () => {
   const correctCount = state.sessionData.filter((data) => data.correct).length;
   const totalCount = state.sessionData.length;
 
+  const correctAnswers = state.sessionData.filter((data) => data.correct);
+  const incorrectAnswers = state.sessionData.filter((data) => !data.correct);
+
   return (
     <>
       <div className="logo-container">
@@ -22,29 +25,25 @@ const SessionSummary: React.FC = () => {
         <p>
           You got {correctCount} out of {totalCount} correct.
         </p>
-        <div className="summary-details">
-          {state.sessionData.map((data, index) => (
-            <div
-              key={index}
-              className={`summary-item ${
-                data.correct ? "correct" : "incorrect"
-              }`}
-            >
-              {data.correct ? (
-                <>
-                  <span className="summary-icon">✔</span>
-                  <span>What you know</span>
-                </>
-              ) : (
-                <>
-                  <span className="summary-icon">✘</span>
-                  <span>What you should review</span>
-                </>
-              )}
-              <Markdown>{data.question}</Markdown>
+        <div className="correct-answers">
+          {correctAnswers.map((data, index) => (
+            <div key={index} className="correct-answer">
+              <span className="summary-icon-green">✔</span>
+              <span className="summary-text">{data.question}</span>
             </div>
           ))}
         </div>
+        <div className="incorrect-answers">
+          {incorrectAnswers.map((data, index) => (
+            <div key={index} className="incorrect-answer">
+              <span className="summary-icon-red">✘</span>
+              <span className="summary-text">{data.question}</span>
+            </div>
+          ))}
+        </div>
+        <Link to="/" className="link-back">
+          Back to Home
+        </Link>
       </div>
     </>
   );

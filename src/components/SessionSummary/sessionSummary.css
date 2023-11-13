@@ -1,3 +1,5 @@
+/* sessionSummary.css */
+
 .session-summary-container {
   background-color: #fff;
   border-radius: 10px;
@@ -7,6 +9,7 @@
   margin: 2rem auto;
   color: #333;
   font-family: Arial, sans-serif;
+  text-align: center;
 }
 
 .summary-details {
@@ -45,17 +48,71 @@
   margin-bottom: 2rem;
 }
 
-/* You can further style the components as needed based on your design preferences. */
-
 /* Center the session summary on the page */
 .session-summary-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
 }
 
 /* Style the links for returning to other views if needed */
+.link-back {
+  margin-top: 1rem;
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.link-back:hover {
+  text-decoration: underline;
+}
+
+/* Add styles for green checkmarks and red crosses */
+/* Updated styles for full-width boxes */
+.correct-answer {
+  background-color: #d4edda;
+  color: #155724; /* Text color for correct answers */
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%; /* Set the width to 100% for full width */
+}
+
+.incorrect-answer {
+  background-color: #f8d7da;
+  color: #721c24; /* Text color for incorrect answers */
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%; /* Set the width to 100% for full width */
+}
+
+
+/* Style the green checkmark and red cross icons */
+.summary-icon-green {
+  margin-right: 1rem;
+  color: #155724; /* Green color */
+}
+
+.summary-icon-red {
+  margin-right: 1rem;
+  color: #721c24; /* Red color */
+}
+
+/* Style the question text */
+.summary-text {
+  flex: 1;
+  font-size: 1.2rem;
+}
+
+/* Style the "Back to Home" link */
 .link-back {
   margin-top: 1rem;
   text-decoration: none;
