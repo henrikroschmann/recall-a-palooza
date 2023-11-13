@@ -108,3 +108,105 @@ button:hover, .submit-btn:hover, .save-btn:hover {
   user-select: none; /* So that the "x" doesn't get highlighted on click */
 }
 
+.flashcard-form-container {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin: 40px auto;
+  color: #333;
+  font-family: 'Arial', sans-serif;
+}
+
+.card-type-switch {
+  display: flex;
+  flex-direction: column; /* Change the direction to column */
+  align-items: flex-start; /* Align items to the start (left) */
+  margin-bottom: 20px;
+}
+
+.card-type-label {
+  font-weight: bold;
+  margin-bottom: 10px; /* Add some spacing between the label and options */
+}
+
+.card-type-options {
+  display: flex;
+  flex-wrap: wrap; /* Allow options to wrap to the next line */
+  align-items: center; /* Align items vertically */
+}
+
+.card-type-option {
+  display: flex;
+  align-items: center;
+  margin-right: 20px;
+  margin-bottom: 10px; /* Add spacing between options */
+}
+
+.card-type-option input[type="radio"] {
+  margin-right: 5px;
+}
+
+
+
+/* FlashcardList styles */
+.flashcard-list-container {
+  margin-top: 30px;
+}
+
+.no-flashcards {
+  font-weight: bold;
+  color: #888;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.flashcard-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.flashcard-item {
+  background-color: #fff;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flashcard-content {
+  flex: 1;
+}
+
+.flashcard-question {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.flashcard-answer {
+  margin-bottom: 10px;
+}
+
+.flashcard-options {
+  margin-bottom: 10px;
+}
+
+.delete-button {
+  background-color: #dc3545;
+  border: none;
+  color: #fff;
+  padding: 10px 15px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.delete-button:hover {
+  background-color: #c82333;
+  transform: scale(0.98);
+}

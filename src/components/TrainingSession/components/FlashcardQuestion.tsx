@@ -19,8 +19,8 @@ const FlashcardQuestion: React.FC<FlashcardQuestionProps> = ({
         {!isCardFlipped
           ? currentCard?.question
           : currentCard?.type === FlashcardTypes.Flip
-          ? currentCard.flipSide
-          : currentCard?.question}
+          ? currentCard.answer // flipside property?
+          : currentCard?.answer}
       </Markdown>
     </div>
   );

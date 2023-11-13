@@ -33,6 +33,9 @@ const TrainingSession: React.FC = () => {
   const [previousIncorrect, setPreviousIncorrect] = useState<boolean>(false);
   const [correctAnswer, setCorrectAnswer] = useState<boolean>(false);
   const [hasAnswered, setHasAnswered] = useState<boolean>(false);
+  const [isAnswerSide, setIsAnswerSide] = useState<boolean>(false);
+  const [reviewedCardIds, setReviewedCardIds] = useState<string[]>([]);
+  const [correctedAnswer, setCorrectedAnswer] = useState(false);
 
   const submitAnswer = (answer: string) => {
     setUserAnswer(answer);
@@ -40,10 +43,14 @@ const TrainingSession: React.FC = () => {
     if (currentCard) {
       const isCorrect = answer === currentCard.answer;
       setHasAnswered(true);
-      if (!isCorrect) {
+
+      // Handle initial incorrect answers
+      if (!isCorrect && !correctedAnswer) {
         setPreviousIncorrect(true);
         setCorrectAnswer(false);
-      } else {
+      }
+
+      if (isCorrect) {
         setCorrectAnswer(true);
       }
     }
@@ -56,12 +63,6 @@ const TrainingSession: React.FC = () => {
       );
     }
   }, [currentCard]);
-
-  const flipCard = () => {
-    setIsCardFlipped(!isCardFlipped);
-    setHasAnswered(true);
-    setCorrectAnswer(true);
-  };
 
   useEffect(() => {
     setDeck(deckQuery);
@@ -77,22 +78,20 @@ const TrainingSession: React.FC = () => {
 
   useEffect(() => {
     if (deck !== undefined) {
-      const reviewedCardIds = new Set(sessionData.map((data) => data.id));
-
       const selectedCards = deck.cards
-        .filter((card) => !reviewedCardIds.has(card.id))
-        .filter((card) => {
-          const lastReviewedDate = card.lastReviewed
-            ? new Date(card.lastReviewed)
-            : null;
-          const currentDate = new Date();
-          currentDate.setHours(0, 0, 0, 0);
-          return (
-            !lastReviewedDate ||
-            lastReviewedDate < currentDate ||
-            card.interval === 1
-          );
-        })
+        .filter((card) => !reviewedCardIds.includes(card.id))
+        // .filter((card) => {
+        //   const lastReviewedDate = card.lastReviewed
+        //     ? new Date(card.lastReviewed)
+        //     : null;
+        //   const currentDate = new Date();
+        //   currentDate.setHours(0, 0, 0, 0);
+        //   return (
+        //     !lastReviewedDate ||
+        //     lastReviewedDate < currentDate ||
+        //     card.interval === 1
+        //   );
+        // })
         .slice(0, 20);
 
       const shuffledCards = shuffle(selectedCards);
@@ -106,7 +105,7 @@ const TrainingSession: React.FC = () => {
         setSessionId(`${deckId ?? ""}-session-${Date.now()}`);
       }
     }
-  }, [deck, deckId, sessionData, sessionId]);
+  }, [deck, deckId, reviewedCardIds, sessionData, sessionId]);
 
   const handleRating = (rating: "easy" | "medium" | "hard") => {
     if (currentCard) {
@@ -114,7 +113,9 @@ const TrainingSession: React.FC = () => {
       setIsAnswerSubmitted(false);
       const correct = userAnswer === currentCard.answer;
       let newInterval = 1;
-      if (correct)
+
+      // Handle card rating and interval logic
+      if (correct) {
         switch (rating) {
           case "easy":
             newInterval = (currentCard.interval || 1) * 2;
@@ -126,19 +127,23 @@ const TrainingSession: React.FC = () => {
             newInterval = 1;
             break;
         }
-      else {
+      } else {
         newInterval = 1;
       }
 
+      // Reset interval for previously incorrect cards
       if (previousIncorrect) {
         newInterval = 1;
       }
 
+      // Update the card with the new interval and review date
       const updatedCard = {
         ...currentCard,
         interval: newInterval,
         lastReviewed: new Date(),
       };
+
+      // Update the deck's cards with the updated card
       const newDeck = deck?.cards.map((card) =>
         card.id === updatedCard.id ? updatedCard : card
       );
@@ -147,6 +152,7 @@ const TrainingSession: React.FC = () => {
         setDeck({ ...deck, cards: newDeck });
       }
 
+      // Remove the current card from the deckFlashcards
       const remainingCards = deckFlashcards.filter(
         (card) => card.id !== currentCard.id
       );
@@ -157,22 +163,30 @@ const TrainingSession: React.FC = () => {
       const endTime = Date.now();
       const timeToAnswer = endTime - startTime;
 
-      setSessionData([
-        ...sessionData,
-        {
-          id: sessionId,
-          question: currentCard.question,
-          timeToAnswer,
-          correct:
-            currentCard.type === FlashcardTypes.Flip
-              ? true
-              : userAnswer === currentCard.answer,
-          rating,
-        },
-      ]);
+      // Only add the session data if the user's initial answer was incorrect
+      if (!correctedAnswer) {
+        setSessionData([
+          ...sessionData,
+          {
+            id: sessionId,
+            question: currentCard.question,
+            timeToAnswer,
+            correct: currentCard.type === FlashcardTypes.Flip ? true : correct,
+            rating,
+          },
+        ]);
+      }
+
+      // Add the reviewed card's ID to the reviewedCardIds state
+      setReviewedCardIds([...reviewedCardIds, currentCard.id]);
+
       setUserAnswer("");
       setStartTime(endTime);
       setCorrectAnswer(false);
+
+      // Mark that the user has corrected their answer
+      setCorrectedAnswer(true);
+      setHasAnswered(false);
     }
   };
 
@@ -224,14 +238,16 @@ const TrainingSession: React.FC = () => {
     updateDeck,
   ]);
 
+  const handleFlipCardReveal = () => {
+    setHasAnswered(true);
+    setIsAnswerSide(!isAnswerSide);
+  };
+
   useEffect(() => {
-    if (
-      sessionData.length === 20 ||
-      (deck && deck.cards.length === sessionData.length)
-    ) {
+    if (sessionData.length > 0 && deckFlashcards.length <= 0) {
       void handleEndSession();
     }
-  }, [deck, deckFlashcards.length, handleEndSession, sessionData]);
+  }, [deckFlashcards, handleEndSession, sessionData.length]);
 
   // const hasAnswered = userAnswer.trim() !== "";
 
@@ -265,10 +281,19 @@ const TrainingSession: React.FC = () => {
               </div>
             )}
 
-            <FlashcardQuestion
-              currentCard={currentCard}
-              isCardFlipped={isCardFlipped}
-            />
+            {isAnswerSide ? (
+              // Render the answer side of the flip card
+              <FlashcardQuestion
+                currentCard={currentCard}
+                isCardFlipped={true}
+              />
+            ) : (
+              // Render the question side of the flip card
+              <FlashcardQuestion
+                currentCard={currentCard}
+                isCardFlipped={false}
+              />
+            )}
 
             {currentCard.type === FlashcardTypes.Multi && (
               <MultipleChoice
@@ -296,13 +321,18 @@ const TrainingSession: React.FC = () => {
             )}
 
             {currentCard.type === FlashcardTypes.Flip && (
-              <button className="flip-btn" onClick={flipCard}>
-                Flip Card
+              <button
+                className="flip-btn"
+                onClick={() => handleFlipCardReveal()}
+              >
+                {isAnswerSide ? "Show Question" : "Show Answer"}
               </button>
             )}
 
             {hasAnswered &&
-              (correctAnswer || currentCard.type === FlashcardTypes.Single) && (
+              (correctAnswer ||
+                currentCard.type === FlashcardTypes.Single ||
+                currentCard.type === FlashcardTypes.Flip) && (
                 <RatingButtons handleRating={handleRating} />
               )}
           </>
