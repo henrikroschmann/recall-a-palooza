@@ -10,12 +10,14 @@ import {
   useUpdateDeckByIdMutation,
 } from "../../utils/api/DeckApi";
 import { ToastContainer, toast } from "react-toastify";
+import FlashcardForm from "./components/FlashcardForm";
+import FlashcardList from "./components/FlashcardList";
 
 const Deck: React.FC = () => {
   const navigate = useNavigate();
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [question, setQuestion] = useState<string>("");
-  const [answers, setAnswers] = useState<string[]>([""]); // Initialize with one empty string for the Single and Flip types
+  const [answers, setAnswers] = useState<string[]>([""]);
   const [selectedCorrectAnswer, setSelectedCorrectAnswer] = useState<
     number | null
   >(null);
@@ -42,15 +44,12 @@ const Deck: React.FC = () => {
 
   const handleCardTypeChange = (selectedType: FlashcardTypes) => {
     setType(selectedType);
-    resetForm(); // Reset the form when switching card types
+    resetForm();
   };
 
-  const handleAnswerChange = (
-    event: React.ChangeEvent<HTMLTextAreaElement>,
-    index: number
-  ) => {
+  const handleAnswerChange = (index: number, answer: string) => {
     const updatedAnswers = [...answers];
-    updatedAnswers[index] = event.target.value;
+    updatedAnswers[index] = answer;
     setAnswers(updatedAnswers);
   };
 
@@ -59,7 +58,12 @@ const Deck: React.FC = () => {
   };
 
   const handleRemoveAnswer = (index: number) => {
-    setAnswers((prevAnswers) => prevAnswers.filter((_, idx) => idx !== index));
+    const updatedAnswers = [...answers];
+    updatedAnswers.splice(index, 1);
+    setAnswers(updatedAnswers);
+    if (selectedCorrectAnswer === index) {
+      setSelectedCorrectAnswer(null);
+    }
   };
 
   const handleRemoveCard = (cardId: string) => {
@@ -72,16 +76,15 @@ const Deck: React.FC = () => {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (question && (answers[0] || flipSide)) {
-      // Ensuring there's a question and at least one answer
       const newCard: Flashcard = {
         id: uuidv4(),
         question,
-        options: type == FlashcardTypes.Multi ? answers : [],
+        options: type === FlashcardTypes.Multi ? answers : [],
         answer:
-          type == FlashcardTypes.Flip
+          type === FlashcardTypes.Flip
             ? flipSide
-            : type == FlashcardTypes.Multi
-            ? answers[selectedCorrectAnswer!]
+            : type === FlashcardTypes.Multi
+            ? answers[selectedCorrectAnswer || 0]
             : answers[0],
         interval: 1,
         type,
@@ -97,23 +100,21 @@ const Deck: React.FC = () => {
 
   const saveDeck = () => {
     if (deckId) {
-      // If deckId exists, update the deck
       const update = async () => {
         try {
           await updateDeck({
             id: deckId,
             updates: { cards: flashcards },
-          }).then(() => {
-            toast.success("Deck Updated", {
-              position: "bottom-left",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "dark",
-            });
+          });
+          toast.success("Deck Updated", {
+            position: "bottom-left",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
           });
         } catch (error) {
           toast.error("Failed to update deck", {
@@ -126,12 +127,10 @@ const Deck: React.FC = () => {
             progress: undefined,
             theme: "dark",
           });
-          //console.error("Failed to update deck:", error);
         }
       };
       void update();
     } else {
-      // Create a new deck
       const id = uuidv4();
       setNewDeckId(id);
 
@@ -140,17 +139,16 @@ const Deck: React.FC = () => {
           await createDeck({
             id: id,
             cards: flashcards,
-          }).then(() => {
-            toast.success("Deck created", {
-              position: "bottom-left",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "dark",
-            });
+          });
+          toast.success("Deck created", {
+            position: "bottom-left",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
           });
         } catch (error) {
           toast.error("Failed to create deck", {
@@ -184,19 +182,16 @@ const Deck: React.FC = () => {
           theme: "dark",
         });
 
-        // Get training sessions from local storage
         const item = localStorage.getItem("session-cloud");
         let sessionCloud: { value: string; priority: number }[] =
           item && item !== ""
             ? (JSON.parse(item) as { value: string; priority: number }[])
             : [];
 
-        // Remove the session with the deleted deckId from the sessionCloud
         sessionCloud = sessionCloud.filter(
           (session) => session.value !== deckId
         );
 
-        // Save the updated sessionCloud back to local storage
         localStorage.setItem("session-cloud", JSON.stringify(sessionCloud));
 
         navigate("/");
@@ -224,9 +219,10 @@ const Deck: React.FC = () => {
       case "3":
         return FlashcardTypes.Flip;
       default:
-        throw new Error("Invalid FlashcardTypes value: " + value);
+        return FlashcardTypes.Single;
     }
   };
+  
 
   return (
     <>
@@ -236,93 +232,26 @@ const Deck: React.FC = () => {
         </Link>
       </div>
       <div className="deck-container">
-        {/* Loading and Updating Indicators */}
         {isLoading && <p>Loading deck...</p>}
 
         <h2>Create a Deck</h2>
 
-        {/* Card type selection */}
-        <div>
-          <label>Card Type: </label>
-          <select
-            title="card Type"
-            onChange={(e) =>
-              handleCardTypeChange(toFlashcardType(e.target.value))
-            }
-          >
-            <option value={FlashcardTypes.Single}>Single Answer</option>
-            <option value={FlashcardTypes.Multi}>Multiple Choice</option>
-            <option value={FlashcardTypes.Flip}>Flip Card</option>
-          </select>
-        </div>
-
-        {/* Flashcard Form */}
-        <form onSubmit={handleSubmit}>
-          {/* Question Field */}
-          <div className="form-group">
-            <label>Question</label>
-            <textarea
-              title="question"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-            />
-          </div>
-
-          {/* Answer Fields based on Card Type */}
-          {type == FlashcardTypes.Single && (
-            <div className="form-group">
-              <label>Answer</label>
-              <textarea
-                title="answer"
-                value={answers[0]}
-                onChange={(e) => handleAnswerChange(e, 0)}
-              />
-            </div>
-          )}
-
-          {type == FlashcardTypes.Multi &&
-            answers.map((answer, idx) => (
-              <div key={idx} className="form-group">
-                <label>{`Option ${idx + 1}`}</label>
-                <textarea
-                  title="answer"
-                  value={answer}
-                  onChange={(e) => handleAnswerChange(e, idx)}
-                />
-                <button type="button" onClick={() => handleRemoveAnswer(idx)}>
-                  Remove
-                </button>
-                <input
-                  aria-label="radio input"
-                  type="radio"
-                  name="correct-answer"
-                  value={idx}
-                  checked={selectedCorrectAnswer === idx}
-                  onChange={() => setSelectedCorrectAnswer(idx)}
-                />{" "}
-                Mark as Correct
-              </div>
-            ))}
-
-          {type == FlashcardTypes.Multi && (
-            <button type="button" onClick={handleAddAnswer}>
-              Add Option
-            </button>
-          )}
-
-          {type == FlashcardTypes.Flip && (
-            <div className="form-group">
-              <label>Flip Side</label>
-              <textarea
-                title="flipside"
-                value={flipSide}
-                onChange={(e) => setFlipSide(e.target.value)}
-              />
-            </div>
-          )}
-
-          <button type="submit">Add Flashcard</button>
-        </form>
+        <FlashcardForm
+          flashcardType={type}
+          question={question}
+          answers={answers}
+          correctAnswerIndex={selectedCorrectAnswer}
+          flipSide={flipSide}
+          onCardTypeChange={handleCardTypeChange}
+          onQuestionChange={setQuestion}
+          toFlashcardType={toFlashcardType}
+          onAnswerChange={handleAnswerChange}
+          onAddAnswer={handleAddAnswer}
+          onRemoveAnswer={handleRemoveAnswer}
+          onSubmit={handleSubmit}
+          onSelectedCorrectAnswer={setSelectedCorrectAnswer}
+          onFlipSideChange={setFlipSide}
+        />
 
         <button className="save-btn" onClick={saveDeck}>
           {deckId ? "Update Deck" : "Save Deck"}
@@ -347,23 +276,11 @@ const Deck: React.FC = () => {
           </button>
         )}
 
-        {/* Flashcards List */}
         <h3>Flashcards in this deck:</h3>
-        <ul className="flashcard-list">
-          {flashcards.map((card, index) => (
-            <li key={index}>
-              Q: {card.question} <br />
-              A:{" "}
-              {card.type == FlashcardTypes.Flip
-                ? card.answer
-                : card.options.join(", ")}
-              <br />
-              <button onClick={() => handleRemoveCard(card.id)}>
-                Remove card
-              </button>
-            </li>
-          ))}
-        </ul>
+        <FlashcardList
+          flashcards={flashcards}
+          onDeleteCard={handleRemoveCard}
+        />
       </div>
       <ToastContainer
         position="bottom-left"

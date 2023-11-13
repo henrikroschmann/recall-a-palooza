@@ -7,6 +7,7 @@ import TrainingReport from "./components/TrainingReport/TrainingReport";
 import SessionsList from "./components/SessionsList/SessionsList";
 import TagCloud from "./components/Deck/TagCloud/TagCloud";
 import 'react-toastify/dist/ReactToastify.css';
+import SessionSummary from "./components/SessionSummary/SessionSummary";
 
 const App: React.FC = () => {
   return (
@@ -19,6 +20,10 @@ const App: React.FC = () => {
           <Route path="/train/:deckId" element={<TrainingSession />} />
           <Route
             path="/training-report/:sessionId"
+            element={<SessionSummary />}
+          />
+          <Route
+            path="/session-report/:sessionId"
             element={<TrainingReport />}
           />
           <Route
