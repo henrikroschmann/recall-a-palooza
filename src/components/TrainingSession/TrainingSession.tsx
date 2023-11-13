@@ -38,24 +38,21 @@ const TrainingSession: React.FC = () => {
   const [correctedAnswer, setCorrectedAnswer] = useState(false);
 
   const submitAnswer = (answer: string) => {
+    const isCorrect = currentCard && answer === currentCard.answer;
+  
     setUserAnswer(answer);
     setIsAnswerSubmitted(true);
-    if (currentCard) {
-      const isCorrect = answer === currentCard.answer;
-      setHasAnswered(true);
-
-      // Handle initial incorrect answers
-      if (!isCorrect && !correctedAnswer) {
-        setPreviousIncorrect(true);
-        setCorrectAnswer(false);
-      }
-
-      if (isCorrect) {
-        setCorrectAnswer(true);
-      }
+    setHasAnswered(true);
+  
+    if (isCorrect) {
+      setCorrectAnswer(true);
+      if (previousIncorrect) setCorrectedAnswer(true);
+    } else if (!correctedAnswer) {
+      setPreviousIncorrect(true);
+      setCorrectAnswer(false);
     }
   };
-
+  
   useEffect(() => {
     if (currentCard?.options) {
       setShuffledOptions(
@@ -164,18 +161,26 @@ const TrainingSession: React.FC = () => {
       const timeToAnswer = endTime - startTime;
 
       // Only add the session data if the user's initial answer was incorrect
-      if (!correctedAnswer) {
-        setSessionData([
-          ...sessionData,
-          {
-            id: sessionId,
-            question: currentCard.question,
-            timeToAnswer,
-            correct: currentCard.type === FlashcardTypes.Flip ? true : correct,
-            rating,
-          },
-        ]);
+      let isCorrect = correct;
+
+      if (currentCard.type === FlashcardTypes.Flip) {
+        isCorrect = true;
       }
+
+      if (currentCard.type === FlashcardTypes.Multi) {
+        isCorrect = correctedAnswer ? false : correct;
+      }
+
+      setSessionData((prevSessionData) => [
+        ...prevSessionData,
+        {
+          id: sessionId,
+          question: currentCard.question,
+          timeToAnswer,
+          correct: isCorrect,
+          rating,
+        },
+      ]);
 
       // Add the reviewed card's ID to the reviewedCardIds state
       setReviewedCardIds([...reviewedCardIds, currentCard.id]);
@@ -185,7 +190,8 @@ const TrainingSession: React.FC = () => {
       setCorrectAnswer(false);
 
       // Mark that the user has corrected their answer
-      setCorrectedAnswer(true);
+      setPreviousIncorrect(false);
+      setCorrectedAnswer(false);
       setHasAnswered(false);
     }
   };
