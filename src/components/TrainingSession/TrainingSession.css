@@ -9,6 +9,26 @@
   font-family: Arial, sans-serif;
 }
 
+.edit-deck-container {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.edit-link {
+  background-color: #007bff;
+  border: none;
+  color: #fff;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  transition: background-color 0.3s;
+  text-decoration: none; /* Remove default link underline */
+}
+
+.edit-link:hover {
+  opacity: 0.9;
+}
+
 .question-box {
   background-color: #f7f7f7;
   padding: 2rem;
@@ -34,10 +54,9 @@
 }
 
 .multiple-choice button.active {
-  background-color: #007BFF;
+  background-color: #007bff;
   color: #fff;
 }
-
 
 .multiple-choice button:hover {
   background-color: #000000;
@@ -96,14 +115,14 @@
 }
 
 .end-session-btn {
-  background-color: #007BFF;
+  background-color: #007bff;
   border: none;
   color: #fff;
   padding: 0.8rem 1.5rem;
   border-radius: 8px;
   font-size: 1.1rem;
   margin-top: 2rem;
-  transition: background-color 0.3s,
+  transition: background-color 0.3s;
 }
 
 .end-session-btn:hover {
@@ -119,11 +138,45 @@
 }
 
 .correct {
-  background-color: #4CAF50; /* Green */
-  color: white;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+  border-radius: 0.25rem;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.correct:before {
+  content: url(url-to-checkmark-icon);
+  display: inline-block;
 }
 
 .incorrect {
-  background-color: #f44336; /* Red */
-  color: white;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  border-radius: 0.25rem;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.incorrect:before {
+  content: url(url-to-caution-icon); /* Replace with the actual path to the caution icon image */
+  display: inline-block;
+}
+
+.correct:before,
+.incorrect:before {
+  width: 20px;
+  height: 20px;
+
+  margin-right: 0.5rem;
 }

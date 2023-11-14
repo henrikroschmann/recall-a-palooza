@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+// TrainingSession.tsx
+
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Deck, Flashcard, FlashcardTypes, SessionData } from "../../types";
 import "./TrainingSession.css";
@@ -6,10 +8,13 @@ import {
   useGetDeckByIdQuery,
   useUpdateDeckByIdMutation,
 } from "../../utils/api/DeckApi";
-
 import { useCreatePostMutation } from "../../utils/api/SessionApi";
-
 import Markdown from "react-markdown";
+import AnswerBox from "./components/AnswerBox";
+import EndSessionMessage from "./components/EndSessionMessage";
+import FlashcardQuestion from "./components/FlashcardQuestion";
+import MultipleChoice from "./components/MultipleChoice";
+import RatingButtons from "./components/RatingButtons";
 
 const TrainingSession: React.FC = () => {
   const [currentCard, setCurrentCard] = useState<Flashcard | null>(null);
@@ -22,18 +27,30 @@ const TrainingSession: React.FC = () => {
   const [deckFlashcards, setDeckFlashcards] = useState<Flashcard[]>([]);
   const [sessionId, setSessionId] = useState<string>("");
   const navigate = useNavigate();
-  const [hasAnswered, setHasAnswered] = useState<boolean>(false);
-  const [isCardFlipped, setIsCardFlipped] = useState<boolean>(false); // For flip card type
+  const [isCardFlipped, setIsCardFlipped] = useState<boolean>(false);
   const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
+  const [previousIncorrect, setPreviousIncorrect] = useState<boolean>(false);
+  const [correctAnswer, setCorrectAnswer] = useState<boolean>(false);
+  const [hasAnswered, setHasAnswered] = useState<boolean>(false);
+  const [isAnswerSide, setIsAnswerSide] = useState<boolean>(false);
+  const [reviewedCardIds, setReviewedCardIds] = useState<string[]>([]);
+  const [correctedAnswer, setCorrectedAnswer] = useState(false);
 
   const submitAnswer = (answer: string) => {
+    const isCorrect =
+      currentCard && answer.toLowerCase() === currentCard.answer.toLowerCase();
+
     setUserAnswer(answer);
     setIsAnswerSubmitted(true);
-    if (currentCard) {
-      if ("options" in currentCard && currentCard.options) {
-        setHasAnswered(true);
-      }
+    setHasAnswered(true);
+
+    if (isCorrect) {
+      setCorrectAnswer(true);
+      if (previousIncorrect) setCorrectedAnswer(true);
+    } else if (!correctedAnswer) {
+      setPreviousIncorrect(true);
+      setCorrectAnswer(false);
     }
   };
 
@@ -44,11 +61,6 @@ const TrainingSession: React.FC = () => {
       );
     }
   }, [currentCard]);
-
-  const flipCard = () => {
-    setIsCardFlipped(!isCardFlipped);
-    setHasAnswered(true);
-  };
 
   useEffect(() => {
     setDeck(deckQuery);
@@ -64,49 +76,45 @@ const TrainingSession: React.FC = () => {
 
   useEffect(() => {
     if (deck !== undefined) {
-      // Retrieve or initialize an array of reviewed card IDs for the current session
-      const reviewedCardIds = new Set(sessionData.map((data) => data.id));
-
-      // Updated logic for filtering and selecting cards
       const selectedCards = deck.cards
-        .filter((card) => !reviewedCardIds.has(card.id)) // Exclude reviewed cards
+        .filter((card) => !reviewedCardIds.includes(card.id))
         .filter((card) => {
           const lastReviewedDate = card.lastReviewed
             ? new Date(card.lastReviewed)
             : null;
           const currentDate = new Date();
-          currentDate.setHours(0, 0, 0, 0); // Consider only the date part
+          currentDate.setHours(0, 0, 0, 0);
           return (
             !lastReviewedDate ||
             lastReviewedDate < currentDate ||
             card.interval === 1
           );
         })
-        .slice(0, 20); // Limit the number of cards
+        .slice(0, 20);
 
-      // Shuffle the selected cards
       const shuffledCards = shuffle(selectedCards);
 
-      // Update state
       setDeckFlashcards(shuffledCards);
       if (shuffledCards.length > 0) {
         setCurrentCard(shuffledCards[0]);
       }
 
-      // Create a session ID only if it's not already set
       if (!sessionId) {
         setSessionId(`${deckId ?? ""}-session-${Date.now()}`);
       }
     }
-  }, [deck, deckId, sessionData, sessionId]);
+  }, [deck, deckId, reviewedCardIds, sessionData, sessionId]);
 
   const handleRating = (rating: "easy" | "medium" | "hard") => {
     if (currentCard) {
       setIsCardFlipped(false);
       setIsAnswerSubmitted(false);
-      const correct = userAnswer === currentCard.answer;
+      const correct =
+        userAnswer.toLowerCase() === currentCard.answer.toLowerCase();
       let newInterval = 1;
-      if (correct)
+
+      // Handle card rating and interval logic
+      if (correct) {
         switch (rating) {
           case "easy":
             newInterval = (currentCard.interval || 1) * 2;
@@ -118,15 +126,23 @@ const TrainingSession: React.FC = () => {
             newInterval = 1;
             break;
         }
-      else {
+      } else {
         newInterval = 1;
       }
 
+      // Reset interval for previously incorrect cards
+      if (previousIncorrect) {
+        newInterval = 1;
+      }
+
+      // Update the card with the new interval and review date
       const updatedCard = {
         ...currentCard,
         interval: newInterval,
         lastReviewed: new Date(),
       };
+
+      // Update the deck's cards with the updated card
       const newDeck = deck?.cards.map((card) =>
         card.id === updatedCard.id ? updatedCard : card
       );
@@ -135,8 +151,9 @@ const TrainingSession: React.FC = () => {
         setDeck({ ...deck, cards: newDeck });
       }
 
+      // Remove the current card from the deckFlashcards
       const remainingCards = deckFlashcards.filter(
-        (card) => card.id !== currentCard.id // Remove the current card
+        (card) => card.id !== currentCard.id
       );
 
       setDeckFlashcards(remainingCards);
@@ -145,74 +162,102 @@ const TrainingSession: React.FC = () => {
       const endTime = Date.now();
       const timeToAnswer = endTime - startTime;
 
-      setSessionData([
-        ...sessionData,
+      // Only add the session data if the user's initial answer was incorrect
+      let isCorrect = correct;
+
+      if (currentCard.type === FlashcardTypes.Flip) {
+        isCorrect = true;
+      }
+
+      if (currentCard.type === FlashcardTypes.Multi) {
+        isCorrect = correctedAnswer ? false : correct;
+      }
+
+      setSessionData((prevSessionData) => [
+        ...prevSessionData,
         {
           id: sessionId,
           question: currentCard.question,
           timeToAnswer,
-          correct:
-            currentCard.type == FlashcardTypes.Flip
-              ? true
-              : userAnswer === currentCard.answer,
+          correct: isCorrect,
           rating,
         },
       ]);
+
+      // Add the reviewed card's ID to the reviewedCardIds state
+      setReviewedCardIds([...reviewedCardIds, currentCard.id]);
+
       setUserAnswer("");
       setStartTime(endTime);
-    }
-    if (sessionData.length === 20) {
-      handleEndSession();
+      setCorrectAnswer(false);
+
+      // Mark that the user has corrected their answer
+      setPreviousIncorrect(false);
+      setCorrectedAnswer(false);
+      setHasAnswered(false);
     }
   };
 
   const [updateDeck] = useUpdateDeckByIdMutation();
   const [createSession] = useCreatePostMutation();
-  const handleEndSession = () => {
-    if (deck) {
-      const update = async () => {
-        try {
-          await updateDeck({ id: deckId ?? "", updates: deck });
-        } catch (error) {
-          console.error("Failed to update deck:", error);
-        }
-      };
-      void update();
 
-      const session = async () => {
-        try {
-          await createSession({
-            id: sessionId,
-            data: sessionData,
-          });
-        } catch (error) {
-          console.error("Failed to save session:", error);
-        }
-      };
-      void session().then(() => {
-        // store training sessions locally
+  const handleEndSession = useCallback(async () => {
+    if (deck) {
+      try {
+        // Update deck
+        await updateDeck({ id: deckId ?? "", updates: deck });
+
+        // Save session
+        await createSession({
+          id: sessionId,
+          data: sessionData,
+        });
+
+        // Update session cloud
         const item = localStorage.getItem("session-cloud");
         const sessionCloud: { value: string; priority: number }[] =
           item && item !== ""
             ? (JSON.parse(item) as { value: string; priority: number }[])
             : [];
 
-        // Find existing session with the same deckId
         const session = sessionCloud.find((s) => s.value === deckId);
 
         if (session) {
-          // If found, increment priority
           session.priority = session.priority >= 9 ? 9 : session.priority + 1;
         } else {
-          // If not found, push a new session with initial priority of 1
           sessionCloud.push({ value: deckId!, priority: 1 });
         }
 
         localStorage.setItem("session-cloud", JSON.stringify(sessionCloud));
-        navigate(`/training-report/${sessionId}`);
-      });
+
+        // Navigate to the training report
+        navigate(`/training-report/${sessionId}`, { state: { sessionData } });
+      } catch (error) {
+        console.error("Failed to update deck or save session:", error);
+      }
     }
+  }, [
+    createSession,
+    deck,
+    deckId,
+    navigate,
+    sessionData,
+    sessionId,
+    updateDeck,
+  ]);
+
+  const handleFlipCardReveal = () => {
+    setHasAnswered(true);
+    setIsAnswerSide(!isAnswerSide);
   };
+
+  useEffect(() => {
+    if (sessionData.length > 0 && deckFlashcards.length <= 0) {
+      void handleEndSession();
+    }
+  }, [deckFlashcards, handleEndSession, sessionData.length]);
+
+  // const hasAnswered = userAnswer.trim() !== "";
 
   return (
     <>
@@ -233,112 +278,80 @@ const TrainingSession: React.FC = () => {
                   userAnswer === currentCard.answer ? "correct" : "incorrect"
                 }`}
               >
-                {userAnswer === currentCard.answer ? "Correct!" : "Incorrect!"}
+                {userAnswer === currentCard.answer ? (
+                  <>
+                    <span>Correct! The answer is: </span>
+                    <Markdown>{currentCard.answer}</Markdown>
+                  </>
+                ) : (
+                  "Incorrect! Please try again."
+                )}
               </div>
             )}
 
-            {!isCardFlipped && (
-              <div className="question-box">
-                <Markdown>
-                  {!isCardFlipped
-                    ? currentCard.question
-                    : currentCard.type == FlashcardTypes.Flip
-                    ? currentCard.flipSide
-                    : currentCard.question}
-                </Markdown>
-              </div>
+            {isAnswerSide ? (
+              // Render the answer side of the flip card
+              <FlashcardQuestion
+                currentCard={currentCard}
+                isCardFlipped={true}
+              />
+            ) : (
+              // Render the question side of the flip card
+              <FlashcardQuestion
+                currentCard={currentCard}
+                isCardFlipped={false}
+              />
             )}
 
-            {currentCard.type == FlashcardTypes.Multi && shuffledOptions && (
-              <div className="multiple-choice">
-                {shuffledOptions.map((option, index) => (
-                  <button
-                    key={index}
-                    className={`${
-                      isAnswerSubmitted && option === currentCard.answer
-                        ? "correct-answer"
-                        : ""
-                    } ${option === userAnswer ? "active" : ""}`}
-                    disabled={isAnswerSubmitted}
-                    onClick={() => submitAnswer(option)}
-                  >
-                    <Markdown>{option}</Markdown>
-                  </button>
-                ))}
-              </div>
+            {currentCard.type === FlashcardTypes.Multi && (
+              <MultipleChoice
+                shuffledOptions={shuffledOptions}
+                isAnswerSubmitted={isAnswerSubmitted}
+                currentCard={currentCard}
+                userAnswer={userAnswer}
+                submitAnswer={submitAnswer}
+              />
             )}
 
-            {currentCard.type == FlashcardTypes.Single && (
-              <div className="answer-box">
-                <label>
-                  Your Answer:
-                  <textarea
-                    disabled={isAnswerSubmitted}
-                    value={userAnswer}
-                    onChange={(e) => {
-                      setUserAnswer(e.target.value);
-                      setHasAnswered(e.target.value.trim() !== "");
-                    }}
-                    rows={4}
-                  />
-                </label>
-              </div>
-            )}
-
-            {isAnswerSubmitted && (
-              <div className="answer-box">
-                <Markdown>{currentCard.answer}</Markdown>
-              </div>
+            {currentCard.type === FlashcardTypes.Single && !correctAnswer && (
+              <AnswerBox
+                userAnswer={userAnswer}
+                setUserAnswer={setUserAnswer}
+                setHasAnswered={setHasAnswered}
+              />
             )}
 
             {isCardFlipped && (
-              <div className="question-box">
-                <Markdown>{currentCard.answer}</Markdown>
-              </div>
+              <FlashcardQuestion
+                currentCard={currentCard}
+                isCardFlipped={true}
+              />
             )}
 
-            {currentCard.type == FlashcardTypes.Flip && (
-              <button className="flip-btn" onClick={flipCard}>
-                Flip Card
+            {currentCard.type === FlashcardTypes.Flip && (
+              <button
+                className="flip-btn"
+                onClick={() => handleFlipCardReveal()}
+              >
+                {isAnswerSide ? "Show Question" : "Show Answer"}
               </button>
             )}
 
-            {hasAnswered && (
-              <div className="rating-buttons">
-                <button
-                  className="easy-btn"
-                  onClick={() => handleRating("easy")}
-                >
-                  Easy
-                </button>
-                <button
-                  className="medium-btn"
-                  onClick={() => handleRating("medium")}
-                >
-                  Medium
-                </button>
-                <button
-                  className="hard-btn"
-                  onClick={() => handleRating("hard")}
-                >
-                  Hard
-                </button>
-              </div>
-            )}
+            {hasAnswered &&
+              (correctAnswer ||
+                currentCard.type === FlashcardTypes.Single ||
+                currentCard.type === FlashcardTypes.Flip) && (
+                <RatingButtons handleRating={handleRating} />
+              )}
           </>
         ) : (
-          <div className="end-session">
-            <p>
-              No flashcards available for review today. Please come back later.
-            </p>
-            <button className="end-session-btn" onClick={handleEndSession}>
-              End Session
-            </button>
-          </div>
+          <EndSessionMessage />
         )}
-        <Link className="edit-link" to={`/deck/${deckId!}`}>
-          Edit this Deck
-        </Link>
+        <div className="edit-deck-container">
+          <Link className="edit-link" to={`/deck/${deckId!}`}>
+            Edit this Deck
+          </Link>
+        </div>
       </div>
     </>
   );
