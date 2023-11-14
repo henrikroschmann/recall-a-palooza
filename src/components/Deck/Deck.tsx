@@ -210,19 +210,7 @@ const Deck: React.FC = () => {
     }
   };
 
-  const toFlashcardType = (value: string): FlashcardTypes => {
-    switch (value) {
-      case "1":
-        return FlashcardTypes.Single;
-      case "2":
-        return FlashcardTypes.Multi;
-      case "3":
-        return FlashcardTypes.Flip;
-      default:
-        return FlashcardTypes.Single;
-    }
-  };
-  
+ 
 
   return (
     <>
@@ -244,7 +232,6 @@ const Deck: React.FC = () => {
           flipSide={flipSide}
           onCardTypeChange={handleCardTypeChange}
           onQuestionChange={setQuestion}
-          toFlashcardType={toFlashcardType}
           onAnswerChange={handleAnswerChange}
           onAddAnswer={handleAddAnswer}
           onRemoveAnswer={handleRemoveAnswer}

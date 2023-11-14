@@ -38,12 +38,13 @@ const TrainingSession: React.FC = () => {
   const [correctedAnswer, setCorrectedAnswer] = useState(false);
 
   const submitAnswer = (answer: string) => {
-    const isCorrect = currentCard && answer === currentCard.answer;
-  
+    const isCorrect =
+      currentCard && answer.toLowerCase() === currentCard.answer.toLowerCase();
+
     setUserAnswer(answer);
     setIsAnswerSubmitted(true);
     setHasAnswered(true);
-  
+
     if (isCorrect) {
       setCorrectAnswer(true);
       if (previousIncorrect) setCorrectedAnswer(true);
@@ -52,7 +53,7 @@ const TrainingSession: React.FC = () => {
       setCorrectAnswer(false);
     }
   };
-  
+
   useEffect(() => {
     if (currentCard?.options) {
       setShuffledOptions(
@@ -77,18 +78,18 @@ const TrainingSession: React.FC = () => {
     if (deck !== undefined) {
       const selectedCards = deck.cards
         .filter((card) => !reviewedCardIds.includes(card.id))
-        // .filter((card) => {
-        //   const lastReviewedDate = card.lastReviewed
-        //     ? new Date(card.lastReviewed)
-        //     : null;
-        //   const currentDate = new Date();
-        //   currentDate.setHours(0, 0, 0, 0);
-        //   return (
-        //     !lastReviewedDate ||
-        //     lastReviewedDate < currentDate ||
-        //     card.interval === 1
-        //   );
-        // })
+        .filter((card) => {
+          const lastReviewedDate = card.lastReviewed
+            ? new Date(card.lastReviewed)
+            : null;
+          const currentDate = new Date();
+          currentDate.setHours(0, 0, 0, 0);
+          return (
+            !lastReviewedDate ||
+            lastReviewedDate < currentDate ||
+            card.interval === 1
+          );
+        })
         .slice(0, 20);
 
       const shuffledCards = shuffle(selectedCards);
@@ -108,7 +109,8 @@ const TrainingSession: React.FC = () => {
     if (currentCard) {
       setIsCardFlipped(false);
       setIsAnswerSubmitted(false);
-      const correct = userAnswer === currentCard.answer;
+      const correct =
+        userAnswer.toLowerCase() === currentCard.answer.toLowerCase();
       let newInterval = 1;
 
       // Handle card rating and interval logic

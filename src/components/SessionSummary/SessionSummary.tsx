@@ -1,10 +1,8 @@
-import React from "react";
-import Markdown from "react-markdown";
-import "./sessionSummary.css";
-import { SessionData } from "types";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from 'react-router-dom';
+import './sessionSummary.css'; // Make sure this path is correct
+import { SessionData } from 'types';
 
-const SessionSummary: React.FC = () => {
+const SessionSummary = () => {
   const location = useLocation();
   const state = location.state as { sessionData: SessionData[] };
   const correctCount = state.sessionData.filter((data) => data.correct).length;
@@ -22,25 +20,36 @@ const SessionSummary: React.FC = () => {
       </div>
       <div className="session-summary-container">
         <h2>Review the course materials to expand your learning.</h2>
-        <p>
-          You got {correctCount} out of {totalCount} correct.
-        </p>
-        <div className="correct-answers">
-          {correctAnswers.map((data, index) => (
-            <div key={index} className="correct-answer">
-              <span className="summary-icon-green">✔</span>
-              <span className="summary-text">{data.question}</span>
-            </div>
-          ))}
-        </div>
-        <div className="incorrect-answers">
-          {incorrectAnswers.map((data, index) => (
-            <div key={index} className="incorrect-answer">
-              <span className="summary-icon-red">✘</span>
-              <span className="summary-text">{data.question}</span>
-            </div>
-          ))}
-        </div>
+        <p>You got {correctCount} out of {totalCount} correct.</p>
+
+        {correctAnswers.length > 0 && (
+          <div className="answers-section correct-answers">
+            <h3>What you know</h3>
+            <ul>
+              {correctAnswers.map((answer, index) => (
+                <li key={index} className="summary-item correct">
+                  <span className="summary-icon">✔</span>
+                  <span className="summary-text">{answer.question}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {incorrectAnswers.length > 0 && (
+          <div className="answers-section incorrect-answers">
+            <h3>What you should review</h3>
+            <ul>
+              {incorrectAnswers.map((answer, index) => (
+                <li key={index} className="summary-item incorrect">
+                  <span className="summary-icon">✘</span>
+                  <span className="summary-text">{answer.question}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <Link to="/" className="link-back">
           Back to Home
         </Link>

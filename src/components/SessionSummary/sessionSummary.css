@@ -9,7 +9,10 @@
   margin: 2rem auto;
   color: #333;
   font-family: Arial, sans-serif;
-  text-align: center;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .summary-details {
@@ -17,25 +20,33 @@
 }
 
 .summary-item {
-  padding: 1rem;
-  border-radius: 10px;
-  margin-bottom: 1rem;
+  padding: 0.5rem 1rem; /* Unified padding */
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: start;
 }
 
-.summary-item.correct {
-  background-color: #d4edda;
-  color: #155724; /* Text color for correct answers */
-}
-
+/* Remove specific background color from correct and incorrect items */
+.summary-item.correct,
 .summary-item.incorrect {
-  background-color: #f8d7da;
-  color: #721c24; /* Text color for incorrect answers */
+  background-color: transparent;
 }
 
+/* Style for icons */
 .summary-icon {
   margin-right: 1rem;
   font-size: 1.5rem;
   vertical-align: middle;
+}
+
+/* Icon colors for correct and incorrect items */
+.summary-item.correct .summary-icon {
+  color: #28a745; /* Green color for the checkmark */
+}
+
+.summary-item.incorrect .summary-icon {
+  color: #dc3545; /* Red color for the cross */
 }
 
 .session-summary-container h2 {
@@ -48,14 +59,6 @@
   margin-bottom: 2rem;
 }
 
-/* Center the session summary on the page */
-.session-summary-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Style the links for returning to other views if needed */
 .link-back {
   margin-top: 1rem;
   text-decoration: none;
@@ -66,44 +69,6 @@
 
 .link-back:hover {
   text-decoration: underline;
-}
-
-/* Add styles for green checkmarks and red crosses */
-/* Updated styles for full-width boxes */
-.correct-answer {
-  background-color: #d4edda;
-  color: #155724; /* Text color for correct answers */
-  padding: 1rem;
-  border-radius: 10px;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%; /* Set the width to 100% for full width */
-}
-
-.incorrect-answer {
-  background-color: #f8d7da;
-  color: #721c24; /* Text color for incorrect answers */
-  padding: 1rem;
-  border-radius: 10px;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%; /* Set the width to 100% for full width */
-}
-
-
-/* Style the green checkmark and red cross icons */
-.summary-icon-green {
-  margin-right: 1rem;
-  color: #155724; /* Green color */
-}
-
-.summary-icon-red {
-  margin-right: 1rem;
-  color: #721c24; /* Red color */
 }
 
 /* Style the question text */
@@ -112,15 +77,64 @@
   font-size: 1.2rem;
 }
 
-/* Style the "Back to Home" link */
-.link-back {
-  margin-top: 1rem;
-  text-decoration: none;
-  color: #007bff;
-  font-weight: bold;
-  font-size: 1.2rem;
+.summary-section {
+  margin-bottom: 1rem;
 }
 
-.link-back:hover {
-  text-decoration: underline;
+.summary-section-title {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+}
+
+.section-title {
+  font-size: 1.3rem;
+  text-align: left;
+  width: 100%;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem; /* Fixed syntax error */
+}
+
+.section-title.correct {
+  color: #155724;
+}
+
+.section-title.incorrect {
+  color: #721c24;
+}
+
+.answers-section h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.answers-section ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.answer-item {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  font-size: 1.2rem;
+  width: 24px;
+  display: inline-block;
+  text-align: center;
+}
+
+.answer-text {
+  margin-left: 10px;
+}
+
+.correct,
+.incorrect {
+  border: 0px;
+  box-shadow: none;
 }

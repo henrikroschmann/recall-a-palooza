@@ -9,7 +9,6 @@ interface FlashcardFormProps {
   flipSide: string;
   onCardTypeChange: (selectedType: FlashcardTypes) => void;
   onQuestionChange: (question: string) => void;
-  toFlashcardType: (value: string) => void;
   onAnswerChange: (index: number, answer: string) => void;
   onAddAnswer: () => void;
   onRemoveAnswer: (index: number) => void;
@@ -26,7 +25,6 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({
   flipSide,
   onCardTypeChange,
   onQuestionChange,
-  toFlashcardType,
   onAnswerChange,
   onAddAnswer,
   onRemoveAnswer,
