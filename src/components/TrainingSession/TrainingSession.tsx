@@ -1,6 +1,6 @@
 // TrainingSession.tsx
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Deck, Flashcard, FlashcardTypes, SessionData } from "../../types";
 import "./TrainingSession.css";
@@ -74,22 +74,12 @@ const TrainingSession: React.FC = () => {
     return array;
   }
 
+  const initialCardsSet = useRef(false);
+
   useEffect(() => {
-    if (deck !== undefined) {
+    if (deck !== undefined && !initialCardsSet.current) {
       const selectedCards = deck.cards
         .filter((card) => !reviewedCardIds.includes(card.id))
-        .filter((card) => {
-          const lastReviewedDate = card.lastReviewed
-            ? new Date(card.lastReviewed)
-            : null;
-          const currentDate = new Date();
-          currentDate.setHours(0, 0, 0, 0);
-          return (
-            !lastReviewedDate ||
-            lastReviewedDate < currentDate ||
-            card.interval === 1
-          );
-        })
         .slice(0, 20);
 
       const shuffledCards = shuffle(selectedCards);
@@ -102,8 +92,10 @@ const TrainingSession: React.FC = () => {
       if (!sessionId) {
         setSessionId(`${deckId ?? ""}-session-${Date.now()}`);
       }
+
+      initialCardsSet.current = true; 
     }
-  }, [deck, deckId, reviewedCardIds, sessionData, sessionId]);
+  }, [deck]);
 
   const handleRating = (rating: "easy" | "medium" | "hard") => {
     if (currentCard) {
@@ -185,7 +177,7 @@ const TrainingSession: React.FC = () => {
       ]);
 
       // Add the reviewed card's ID to the reviewedCardIds state
-      setReviewedCardIds([...reviewedCardIds, currentCard.id]);
+      setReviewedCardIds((prevIds) => [...prevIds, currentCard.id]);
 
       setUserAnswer("");
       setStartTime(endTime);
