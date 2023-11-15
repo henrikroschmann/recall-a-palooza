@@ -1,5 +1,19 @@
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  border: none;
+  font-size: inherit;
+  font: inherit;
+  color: inherit;
+  background: none;
+  box-shadow: none;
+}
+
 .report-container {
-  font-family: Arial, sans-serif;
+  font-family: Arial, sans-serif;  
   padding: 2rem;
   background-color: #f7f7f9;
   border-radius: 5px;
@@ -19,7 +33,8 @@ h2 {
 }
 
 .report-table {
-  width: 100%;
+  width: 100%;  
+  table-layout: fixed;  
   border-collapse: collapse;
   margin-top: 2rem;
 }
@@ -29,6 +44,7 @@ h2 {
   color: white;
   padding: 10px 5px;
   text-align: left;
+  width: 25%;
 }
 
 .report-table tbody tr {
@@ -39,11 +55,11 @@ h2 {
   background-color: #f0f0f0;
 }
 
-.report-table tbody tr.correct {
+.report-table tbody tr.correct_answer {
   background-color: #e6f7e6;
 }
 
-.report-table tbody tr.incorrect {
+.report-table tbody tr.incorrect_answer {
   background-color: #f7e6e6;
 }
 
@@ -51,4 +67,38 @@ h2 {
   padding: 8px 5px;
   border-bottom: 1px solid #ced4da;
   color: black;
+  word-break: break-words;
+}
+
+.report-table {
+  width: 100%;
+  table-layout: fixed; /* Ensures columns are a fixed width */
+  border-collapse: collapse; /* For border spacing consistency */
+}
+
+.report-table th,
+.report-table td {
+  padding: 8px; /* Ensure consistent padding */
+  text-align: left; /* Align text to the left */
+  border-bottom: 1px solid #ced4da; /* Consistent border style */
+}
+
+.report-table th {
+  background-color: #343a40;
+  color: white;
+}
+
+/* If you want to set specific widths for each column */
+.report-table th:nth-child(1), /* Question column */
+.report-table td:nth-child(1) {
+  width: 50%; /* Adjust the percentage as needed */
+}
+
+.report-table th:nth-child(2), /* Time to Answer column */
+.report-table td:nth-child(2),
+.report-table th:nth-child(3), /* Correct column */
+.report-table td:nth-child(3),
+.report-table th:nth-child(4), /* Rating column */
+.report-table td:nth-child(4) {
+  width: 16.66%; /* Adjust the percentage so that the total is 100% */
 }

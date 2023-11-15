@@ -60,7 +60,7 @@ const SessionsList: React.FC = () => {
                   <tr key={index} className="session-item">
                     <td>
                       <Link
-                        to={`/training-report/${session.sessionId}`}
+                        to={`/session-report/${session.sessionId}`}
                         className="session-link"
                       >
                         Report for Session: {session.sessionId}

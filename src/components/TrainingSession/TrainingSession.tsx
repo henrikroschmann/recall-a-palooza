@@ -93,9 +93,9 @@ const TrainingSession: React.FC = () => {
         setSessionId(`${deckId ?? ""}-session-${Date.now()}`);
       }
 
-      initialCardsSet.current = true; 
+      initialCardsSet.current = true;
     }
-  }, [deck]);
+  }, [deck, deckId, reviewedCardIds, sessionId]);
 
   const handleRating = (rating: "easy" | "medium" | "hard") => {
     if (currentCard) {
@@ -249,8 +249,6 @@ const TrainingSession: React.FC = () => {
     }
   }, [deckFlashcards, handleEndSession, sessionData.length]);
 
-  // const hasAnswered = userAnswer.trim() !== "";
-
   return (
     <>
       <div className="logo-container">
@@ -271,12 +269,14 @@ const TrainingSession: React.FC = () => {
                 }`}
               >
                 {userAnswer === currentCard.answer ? (
-                  <>
-                    <span>Correct! The answer is: </span>
+                  <div className="correct-response">
+                    <div className="correct-text">Correct! The answer is:</div>
                     <Markdown>{currentCard.answer}</Markdown>
-                  </>
+                  </div>
                 ) : (
-                  "Incorrect! Please try again."
+                  <div className="incorrect-text">
+                    Incorrect! Please try again.
+                  </div>
                 )}
               </div>
             )}
