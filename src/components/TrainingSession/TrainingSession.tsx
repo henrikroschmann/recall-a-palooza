@@ -95,7 +95,7 @@ const TrainingSession: React.FC = () => {
 
       initialCardsSet.current = true;
     }
-  }, [deck]);
+  }, [deck, deckId, reviewedCardIds, sessionId]);
 
   const handleRating = (rating: "easy" | "medium" | "hard") => {
     if (currentCard) {
@@ -248,8 +248,6 @@ const TrainingSession: React.FC = () => {
       void handleEndSession();
     }
   }, [deckFlashcards, handleEndSession, sessionData.length]);
-
-  // const hasAnswered = userAnswer.trim() !== "";
 
   return (
     <>
