@@ -151,9 +151,31 @@
 }
 
 .correct:before {
-  content: url(url-to-checkmark-icon);
+  /* content: url(url-to-checkmark-icon); */
   display: inline-block;
 }
+
+.correct-response {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.correct-text {
+  font-weight: bold;
+  margin-bottom: 10px; /* Space between text and answer */
+}
+
+.incorrect-text {
+  font-weight: bold;
+}
+
+.correct-answer {
+  background-color: #f7f7f7; /* Optional: styling for answer background */
+  padding: 10px;
+  border-radius: 5px;
+}
+
 
 .incorrect {
   background-color: #f8d7da;
@@ -169,7 +191,7 @@
 }
 
 .incorrect:before {
-  content: url(url-to-caution-icon); /* Replace with the actual path to the caution icon image */
+  /* content: url(url-to-caution-icon);  */
   display: inline-block;
 }
 

@@ -1,19 +1,24 @@
-import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
-import { Session } from "../../types";
-import "./TrainingReport.css";
-import { useGetsessionByIdQuery } from "../../utils/api/SessionApi";
+import React, { useState, useEffect } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { Session } from '../../types';
+import './TrainingReport.css';
+import { useGetsessionByIdQuery } from '../../utils/api/SessionApi';
+import { formatTimeToAnswer } from '../../utils/helpers'; // Assume this is a helper function you create
 
 const TrainingReport: React.FC = () => {
-  const { sessionId } = useParams<{ deckId: string; sessionId: string }>();
-  const [sessionData, setSessionData] = useState<Session>();
+  const { sessionId } = useParams<{ sessionId: string }>();
+  const [sessionData, setSessionData] = useState<Session | null>(null);
   const { data: sessionQuery } = useGetsessionByIdQuery(sessionId ?? "");
 
   useEffect(() => {
-    const retrievedSessionData = sessionQuery;
+    if (sessionQuery) {
+      setSessionData(sessionQuery);
+    }
+  }, [sessionQuery]);
 
-    setSessionData(retrievedSessionData);
-  }, [sessionId, sessionQuery]);
+  if (!sessionData) {
+    return <div>Loading...</div>; 
+  }
 
   return (
     <>
@@ -24,7 +29,7 @@ const TrainingReport: React.FC = () => {
       </div>
       <div className="report-container">
         <h2>Training Report</h2>
-        {sessionData?.data.length === 0 ? (
+        {!sessionData.data.length ? (
           <p className="no-data">No data available for this session.</p>
         ) : (
           <table className="report-table">
@@ -37,15 +42,12 @@ const TrainingReport: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {sessionData?.data.map((data, index) => (
-                <tr
-                  key={index}
-                  className={data.correct ? "correct" : "incorrect"}
-                >
-                  <td>{data.question}</td>
-                  <td>{(data.timeToAnswer / 1000).toFixed(2)}</td>
-                  <td>{data.correct ? "Yes" : "No"}</td>
-                  <td>{data.rating}</td>
+              {sessionData.data.map((item) => (
+                <tr key={item.id} className={item.correct ? 'correct_answer' : 'incorrect_answer'}>
+                  <td>{item.question}</td>
+                  <td>{formatTimeToAnswer(item.timeToAnswer)}</td>
+                  <td>{item.correct ? 'Yes' : 'No'}</td>
+                  <td>{item.rating}</td>
                 </tr>
               ))}
             </tbody>
