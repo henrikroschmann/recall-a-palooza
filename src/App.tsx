@@ -6,8 +6,9 @@ import Deck from "./components/Deck/Deck";
 import TrainingReport from "./components/TrainingReport/TrainingReport";
 import SessionsList from "./components/SessionsList/SessionsList";
 import TagCloud from "./components/Deck/TagCloud/TagCloud";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 import SessionSummary from "./components/SessionSummary/SessionSummary";
+import { version } from "../package.json";
 
 const App: React.FC = () => {
   return (
@@ -43,6 +44,7 @@ const App: React.FC = () => {
             }
           />
         </Routes>
+        <div className="version-number">v{version}</div>
       </div>
     </Router>
   );
