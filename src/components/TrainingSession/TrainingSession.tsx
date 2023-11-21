@@ -193,7 +193,7 @@ const TrainingSession: React.FC = () => {
     setUserAnswer("");
     setStartTime(endTime);
     setCorrectAnswer(false);
-    setPreviousIncorrect(!correct);
+    setPreviousIncorrect(false);
     setCorrectedAnswer(false);
     setHasAnswered(false);
 
