@@ -34,7 +34,7 @@ const TrainingSession: React.FC = () => {
   const [correctAnswer, setCorrectAnswer] = useState<boolean>(false);
   const [hasAnswered, setHasAnswered] = useState<boolean>(false);
   const [isAnswerSide, setIsAnswerSide] = useState<boolean>(false);
-  const [reviewedCardIds, setReviewedCardIds] = useState<string[]>([]);
+  // const [reviewedCardIds, setReviewedCardIds] = useState<string[]>([]);
   const [correctedAnswer, setCorrectedAnswer] = useState(false);
 
   const submitAnswer = (answer: string) => {
@@ -66,13 +66,13 @@ const TrainingSession: React.FC = () => {
     setDeck(deckQuery);
   }, [deckId, deckQuery]);
 
-  function shuffle(array: Flashcard[]): Flashcard[] {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  }
+  // function shuffle(array: Flashcard[]): Flashcard[] {
+  //   for (let i = array.length - 1; i > 0; i--) {
+  //     const j = Math.floor(Math.random() * (i + 1));
+  //     [array[i], array[j]] = [array[j], array[i]];
+  //   }
+  //   return array;
+  // }
 
   const initialCardsSet = useRef(false);
 
@@ -87,7 +87,7 @@ const TrainingSession: React.FC = () => {
   
       // Filter out the reviewed cards and slice the first 20 cards
       const selectedCards = sortedCards
-        .filter((card) => !reviewedCardIds.includes(card.id))
+        // .filter((card) => !reviewedCardIds.includes(card.id))
         .slice(0, 20);
   
       setDeckFlashcards(selectedCards);
@@ -101,7 +101,7 @@ const TrainingSession: React.FC = () => {
   
       initialCardsSet.current = true;
     }
-  }, [deck, deckId, reviewedCardIds, sessionId]);
+  }, [deck, deckId, sessionId]);
   
 
 
