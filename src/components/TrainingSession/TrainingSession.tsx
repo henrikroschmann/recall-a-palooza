@@ -181,7 +181,7 @@ const TrainingSession: React.FC = () => {
       setDeckFlashcards(remainingCards);
       setCurrentCard(remainingCards.length > 0 ? remainingCards[0] : null);
 
-      resetSessionState(correct, rating);
+      resetSessionState(isCorrect, rating);
     }
   };
 
