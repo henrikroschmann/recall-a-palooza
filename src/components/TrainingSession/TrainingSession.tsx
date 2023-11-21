@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Deck, Flashcard, FlashcardTypes, SessionData } from "../../types";
+import { Deck, Flashcard, FlashcardTypes, Rating, SessionData } from "../../types";
 import "./TrainingSession.css";
 import {
   useGetDeckByIdQuery,
@@ -78,117 +78,228 @@ const TrainingSession: React.FC = () => {
 
   useEffect(() => {
     if (deck !== undefined && !initialCardsSet.current) {
-      const selectedCards = deck.cards
+      // Sort the cards by interval. Assuming a lower interval means the card should be reviewed sooner.
+      const sortedCards = [...deck.cards].sort((a, b) => {
+        const intervalA = a.interval || Number.MAX_SAFE_INTEGER;
+        const intervalB = b.interval || Number.MAX_SAFE_INTEGER;
+        return intervalA - intervalB;
+      });
+  
+      // Filter out the reviewed cards and slice the first 20 cards
+      const selectedCards = sortedCards
         .filter((card) => !reviewedCardIds.includes(card.id))
         .slice(0, 20);
-
-      const shuffledCards = shuffle(selectedCards);
-
-      setDeckFlashcards(shuffledCards);
-      if (shuffledCards.length > 0) {
-        setCurrentCard(shuffledCards[0]);
+  
+      setDeckFlashcards(selectedCards);
+      if (selectedCards.length > 0) {
+        setCurrentCard(selectedCards[0]);
       }
-
+  
       if (!sessionId) {
         setSessionId(`${deckId ?? ""}-session-${Date.now()}`);
       }
-
+  
       initialCardsSet.current = true;
     }
   }, [deck, deckId, reviewedCardIds, sessionId]);
+  
+
+
+  const calculateNewInterval = (
+    rating: "easy" | "medium" | "hard",
+    correct: boolean,
+    previousInterval: number,
+    previousIncorrect: boolean
+  ): number => {
+    let newInterval = 1;
+    if (correct) {
+      switch (rating) {
+        case "easy":
+          newInterval = previousInterval * 2;
+          break;
+        case "medium":
+          newInterval = previousInterval * 1.5;
+          break;
+        case "hard":
+          newInterval = 1;
+          break;
+      }
+    }
+    if (previousIncorrect) {
+      newInterval = 1;
+    }
+    return newInterval;
+  };
+
+  const updateCardAndDeck = (
+    card: Flashcard,
+    newInterval: number,
+    deck: Deck
+  ) => {
+    const updatedCard = {
+      ...card,
+      interval: newInterval,
+      lastReviewed: new Date(),
+    };
+
+    const newDeck = deck.cards.map((c) =>
+      c.id === updatedCard.id ? updatedCard : c
+    );
+
+    return newDeck;
+  };
 
   const handleRating = (rating: "easy" | "medium" | "hard") => {
     if (currentCard) {
-      setIsCardFlipped(false);
-      setIsAnswerSubmitted(false);
       const correct =
         userAnswer.toLowerCase() === currentCard.answer.toLowerCase();
-      let newInterval = 1;
-
-      // Handle card rating and interval logic
-      if (correct) {
-        switch (rating) {
-          case "easy":
-            newInterval = (currentCard.interval || 1) * 2;
-            break;
-          case "medium":
-            newInterval = (currentCard.interval || 1) * 1.5;
-            break;
-          case "hard":
-            newInterval = 1;
-            break;
-        }
-      } else {
-        newInterval = 1;
-      }
-
-      // Reset interval for previously incorrect cards
-      if (previousIncorrect) {
-        newInterval = 1;
-      }
-
-      // Update the card with the new interval and review date
-      const updatedCard = {
-        ...currentCard,
-        interval: newInterval,
-        lastReviewed: new Date(),
-      };
-
-      // Update the deck's cards with the updated card
-      const newDeck = deck?.cards.map((card) =>
-        card.id === updatedCard.id ? updatedCard : card
+      const newInterval = calculateNewInterval(
+        rating,
+        correct,
+        currentCard.interval || 1,
+        previousIncorrect
       );
 
-      if (newDeck) {
-        setDeck({ ...deck, cards: newDeck });
-      }
+      const newDeck = updateCardAndDeck(currentCard, newInterval, deck!);
+      setDeck({ ...deck, cards: newDeck });
 
-      // Remove the current card from the deckFlashcards
       const remainingCards = deckFlashcards.filter(
         (card) => card.id !== currentCard.id
       );
-
       setDeckFlashcards(remainingCards);
       setCurrentCard(remainingCards.length > 0 ? remainingCards[0] : null);
 
-      const endTime = Date.now();
-      const timeToAnswer = endTime - startTime;
-
-      // Only add the session data if the user's initial answer was incorrect
-      let isCorrect = correct;
-
-      if (currentCard.type === FlashcardTypes.Flip) {
-        isCorrect = true;
-      }
-
-      if (currentCard.type === FlashcardTypes.Multi) {
-        isCorrect = correctedAnswer ? false : correct;
-      }
-
-      setSessionData((prevSessionData) => [
-        ...prevSessionData,
-        {
-          id: sessionId,
-          question: currentCard.question,
-          timeToAnswer,
-          correct: isCorrect,
-          rating,
-        },
-      ]);
-
-      // Add the reviewed card's ID to the reviewedCardIds state
-      setReviewedCardIds((prevIds) => [...prevIds, currentCard.id]);
-
-      setUserAnswer("");
-      setStartTime(endTime);
-      setCorrectAnswer(false);
-
-      // Mark that the user has corrected their answer
-      setPreviousIncorrect(false);
-      setCorrectedAnswer(false);
-      setHasAnswered(false);
+      resetSessionState(correct, rating);
     }
   };
+
+  const resetSessionState = (correct: boolean, rating: Rating) => {
+    const endTime = Date.now();
+    const timeToAnswer = endTime - startTime;
+    setIsCardFlipped(false);
+    setIsAnswerSubmitted(false);
+    setUserAnswer("");
+    setStartTime(endTime);
+    setCorrectAnswer(false);
+    setPreviousIncorrect(!correct);
+    setCorrectedAnswer(false);
+    setHasAnswered(false);
+
+    setSessionData((prevSessionData) => [
+      ...prevSessionData,
+      {
+        id: sessionId,
+        question: currentCard!.question,
+        timeToAnswer,
+        correct,
+        rating,
+      },
+    ]);
+
+    //     setSessionData((prevSessionData) => [
+    //   ...prevSessionData,
+    //   {
+    //     id: sessionId,
+    //     question: currentCard.question,
+    //     timeToAnswer,
+    //     correct: isCorrect,
+    //     rating,
+    //   },
+    // ]);
+  };
+
+  // const handleRating = (rating: "easy" | "medium" | "hard") => {
+  //   if (currentCard) {
+  //     setIsCardFlipped(false);
+  //     setIsAnswerSubmitted(false);
+  //     const correct =
+  //       userAnswer.toLowerCase() === currentCard.answer.toLowerCase();
+  //     let newInterval = 1;
+
+  //     // Handle card rating and interval logic
+  //     if (correct) {
+  //       switch (rating) {
+  //         case "easy":
+  //           newInterval = (currentCard.interval || 1) * 2;
+  //           break;
+  //         case "medium":
+  //           newInterval = (currentCard.interval || 1) * 1.5;
+  //           break;
+  //         case "hard":
+  //           newInterval = 1;
+  //           break;
+  //       }
+  //     } else {
+  //       newInterval = 1;
+  //     }
+
+  //     // Reset interval for previously incorrect cards
+  //     if (previousIncorrect) {
+  //       newInterval = 1;
+  //     }
+
+  //     // Update the card with the new interval and review date
+  //     const updatedCard = {
+  //       ...currentCard,
+  //       interval: newInterval,
+  //       lastReviewed: new Date(),
+  //     };
+
+  //     // Update the deck's cards with the updated card
+  //     const newDeck = deck?.cards.map((card) =>
+  //       card.id === updatedCard.id ? updatedCard : card
+  //     );
+
+  //     if (newDeck) {
+  //       setDeck({ ...deck, cards: newDeck });
+  //     }
+
+  //     // Remove the current card from the deckFlashcards
+  //     const remainingCards = deckFlashcards.filter(
+  //       (card) => card.id !== currentCard.id
+  //     );
+
+  //     setDeckFlashcards(remainingCards);
+  //     setCurrentCard(remainingCards.length > 0 ? remainingCards[0] : null);
+
+  //     const endTime = Date.now();
+  //     const timeToAnswer = endTime - startTime;
+
+  //     // Only add the session data if the user's initial answer was incorrect
+  //     let isCorrect = correct;
+
+  //     if (currentCard.type === FlashcardTypes.Flip) {
+  //       isCorrect = true;
+  //     }
+
+  //     if (currentCard.type === FlashcardTypes.Multi) {
+  //       isCorrect = correctedAnswer ? false : correct;
+  //     }
+
+  //     setSessionData((prevSessionData) => [
+  //       ...prevSessionData,
+  //       {
+  //         id: sessionId,
+  //         question: currentCard.question,
+  //         timeToAnswer,
+  //         correct: isCorrect,
+  //         rating,
+  //       },
+  //     ]);
+
+  //     // Add the reviewed card's ID to the reviewedCardIds state
+  //     setReviewedCardIds((prevIds) => [...prevIds, currentCard.id]);
+
+  //     setUserAnswer("");
+  //     setStartTime(endTime);
+  //     setCorrectAnswer(false);
+
+  //     // Mark that the user has corrected their answer
+  //     setPreviousIncorrect(false);
+  //     setCorrectedAnswer(false);
+  //     setHasAnswered(false);
+  //   }
+  // };
 
   const [updateDeck] = useUpdateDeckByIdMutation();
   const [createSession] = useCreatePostMutation();
