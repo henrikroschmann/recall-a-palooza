@@ -1,6 +1,6 @@
-import { Link, useLocation } from 'react-router-dom';
-import './sessionSummary.css'; // Make sure this path is correct
-import { SessionData } from 'types';
+import { Link, useLocation } from "react-router-dom";
+import "./sessionSummary.css"; // Make sure this path is correct
+import { SessionData } from "types";
 
 const SessionSummary = () => {
   const location = useLocation();
@@ -20,7 +20,9 @@ const SessionSummary = () => {
       </div>
       <div className="session-summary-container">
         <h2>Review the course materials to expand your learning.</h2>
-        <p>You got {correctCount} out of {totalCount} correct.</p>
+        <p>
+          You got {correctCount} out of {totalCount} correct.
+        </p>
 
         {correctAnswers.length > 0 && (
           <div className="answers-section correct-answers">
@@ -42,8 +44,20 @@ const SessionSummary = () => {
             <ul>
               {incorrectAnswers.map((answer, index) => (
                 <li key={index} className="summary-item incorrect">
-                  <span className="summary-icon">✘</span>
-                  <span className="summary-text">{answer.question}</span>
+                  <div className="summary-content">
+                    <span className="summary-icon">✘</span>
+                    <span className="summary-text">{answer.question}</span>
+                  </div>
+                  {answer.learningMaterialLink && (
+                    <a
+                      href={answer.learningMaterialLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="learn-more-link"
+                    >
+                      Learn More
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>

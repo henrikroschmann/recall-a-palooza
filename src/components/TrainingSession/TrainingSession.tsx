@@ -181,11 +181,15 @@ const TrainingSession: React.FC = () => {
       setDeckFlashcards(remainingCards);
       setCurrentCard(remainingCards.length > 0 ? remainingCards[0] : null);
 
-      resetSessionState(isCorrect, rating);
+      resetSessionState(isCorrect, rating, currentCard.learningMaterialLink);
     }
   };
 
-  const resetSessionState = (correct: boolean, rating: Rating) => {
+  const resetSessionState = (
+    correct: boolean,
+    rating: Rating,
+    learningMaterialLink?: string
+  ) => {
     const endTime = Date.now();
     const timeToAnswer = endTime - startTime;
     setIsCardFlipped(false);
@@ -205,6 +209,7 @@ const TrainingSession: React.FC = () => {
         timeToAnswer,
         correct,
         rating,
+        learningMaterialLink,
       },
     ]);
   };
@@ -277,10 +282,17 @@ const TrainingSession: React.FC = () => {
       </div>
 
       <div className="training-container">
-        <h2>Training Session</h2>
+        <h2>
+          Training Session{" "}
+          {` - Question ${sessionData.length + 1} of ${
+            deckFlashcards.length
+          }`}
+        </h2>
 
         {currentCard ? (
           <>
+            {currentCard.title ? <h3>{currentCard.title}</h3> : ""}
+
             {isAnswerSubmitted && (
               <div
                 className={`toast-notification ${

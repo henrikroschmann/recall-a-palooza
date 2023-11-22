@@ -4,11 +4,13 @@ import { Flashcard, FlashcardTypes } from "../../../types";
 interface FlashcardListProps {
   flashcards: Flashcard[];
   onDeleteCard: (cardId: string) => void;
+  onEditCard: (cardId: string) => void;
 }
 
 const FlashcardList: React.FC<FlashcardListProps> = ({
   flashcards,
   onDeleteCard,
+  onEditCard,
 }) => {
   return (
     <div className="flashcard-list-container">
@@ -35,6 +37,12 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
                   <p className="flashcard-answer">Answer: {card.answer}</p>
                 )}
               </div>
+              <button
+                className="edit-button"
+                onClick={() => onEditCard(card.id)}
+              >
+                Edit
+              </button>
               <button
                 className="delete-button"
                 onClick={() => onDeleteCard(card.id)}

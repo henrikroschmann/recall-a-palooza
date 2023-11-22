@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { Session } from '../../types';
-import './TrainingReport.css';
-import { useGetsessionByIdQuery } from '../../utils/api/SessionApi';
-import { formatTimeToAnswer } from '../../utils/helpers'; // Assume this is a helper function you create
+import React, { useState, useEffect } from "react";
+import { Link, useParams } from "react-router-dom";
+import { Session } from "../../types";
+import "./TrainingReport.css";
+import { useGetsessionByIdQuery } from "../../utils/api/SessionApi";
+import { formatTimeToAnswer } from "../../utils/helpers"; // Assume this is a helper function you create
 
 const TrainingReport: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -17,7 +17,7 @@ const TrainingReport: React.FC = () => {
   }, [sessionQuery]);
 
   if (!sessionData) {
-    return <div>Loading...</div>; 
+    return <div>Loading...</div>;
   }
 
   return (
@@ -39,15 +39,33 @@ const TrainingReport: React.FC = () => {
                 <th>Time to Answer (s)</th>
                 <th>Correct</th>
                 <th>Rating</th>
+                <th>Learning Material</th>
               </tr>
             </thead>
             <tbody>
-              {sessionData.data.map((item) => (
-                <tr key={item.id} className={item.correct ? 'correct_answer' : 'incorrect_answer'}>
+              {sessionData.data.map((item, index) => (
+                <tr
+                  key={index}
+                  className={
+                    item.correct ? "correct_answer" : "incorrect_answer"
+                  }
+                >
                   <td>{item.question}</td>
                   <td>{formatTimeToAnswer(item.timeToAnswer)}</td>
-                  <td>{item.correct ? 'Yes' : 'No'}</td>
+                  <td>{item.correct ? "Yes" : "No"}</td>
                   <td>{item.rating}</td>
+                  <td>
+                    {item.learningMaterialLink ? 
+                    <a
+                      href={item.learningMaterialLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="learn-more-link"
+                    >
+                      Learn More
+                    </a> : ''
+                    }
+                  </td>
                 </tr>
               ))}
             </tbody>

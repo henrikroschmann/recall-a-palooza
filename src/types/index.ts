@@ -5,6 +5,7 @@ export interface Deck {
 
 export interface Flashcard {
   id: string;
+  title?: string;
   question: string;
   options: string[]; // For multi answer
   answer: string;
@@ -12,6 +13,7 @@ export interface Flashcard {
   interval: number;
   type: FlashcardTypes;
   lastReviewed?: Date | null;
+  learningMaterialLink?: string;
 }
 
 export enum FlashcardTypes {
@@ -38,4 +40,5 @@ export interface SessionData {
   timeToAnswer: number;
   correct: boolean;
   rating: Rating;
+  learningMaterialLink?: string;
 }
