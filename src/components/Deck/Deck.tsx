@@ -18,6 +18,8 @@ const Deck: React.FC = () => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [question, setQuestion] = useState<string>("");
   const [answers, setAnswers] = useState<string[]>([""]);
+  const [title, setTitle] = useState<string>("");
+  const [learningMaterialLink, setLearningMaterialLink] = useState<string>("");
   const [selectedCorrectAnswer, setSelectedCorrectAnswer] = useState<
     number | null
   >(null);
@@ -25,6 +27,8 @@ const Deck: React.FC = () => {
   const { deckId = "" } = useParams<{ deckId?: string }>();
   const [newDeckId, setNewDeckId] = useState<string>("");
   const [flipSide, setFlipSide] = useState<string>("");
+  const [editingCardId, setEditingCardId] = useState<string | null>(null);
+
   const { data: fetchedDeck, isLoading } = useGetDeckByIdQuery(deckId, {
     skip: !deckId,
   });
@@ -40,6 +44,8 @@ const Deck: React.FC = () => {
     setAnswers([""]);
     setSelectedCorrectAnswer(null);
     setFlipSide("");
+    setTitle("");
+    setLearningMaterialLink("");
   };
 
   const handleCardTypeChange = (selectedType: FlashcardTypes) => {
@@ -73,11 +79,40 @@ const Deck: React.FC = () => {
     }
   };
 
+  const handleEditCard = (cardId: string) => {
+    const cardToEdit = flashcards.find((card) => card.id === cardId);
+    if (cardToEdit) {
+
+      let answer: string[];
+      switch (cardToEdit.type) {
+        case FlashcardTypes.Single:
+          answer = [cardToEdit.answer]; // string
+          break;
+        case FlashcardTypes.Multi:
+          answer = cardToEdit.options; //string[]
+          break;
+        case FlashcardTypes.Flip:
+          answer = [cardToEdit.flipSide ?? '']; //string
+          break;        
+      }
+
+      setQuestion(cardToEdit.question);
+      setTitle(cardToEdit.title ?? "");
+      setLearningMaterialLink(cardToEdit.learningMaterialLink ?? "");
+      setAnswers(answer);
+      setSelectedCorrectAnswer(cardToEdit.options.indexOf(cardToEdit.answer));
+      setType(cardToEdit.type);
+      setEditingCardId(cardId);
+    }
+  };
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (question && (answers[0] || flipSide)) {
       const newCard: Flashcard = {
-        id: uuidv4(),
+        id: editingCardId || uuidv4(),
+        title,
+        learningMaterialLink,
         question,
         options: type === FlashcardTypes.Multi ? answers : [],
         answer:
@@ -89,8 +124,19 @@ const Deck: React.FC = () => {
         interval: 1,
         type,
       };
-      setFlashcards((prev) => [...prev, newCard]);
+
+      if (editingCardId) {
+        // Update the existing card
+        setFlashcards((prev) =>
+          prev.map((card) => (card.id === editingCardId ? newCard : card))
+        );
+      } else {
+        // Add a new card
+        setFlashcards((prev) => [...prev, newCard]);
+      }
+
       resetForm();
+      setEditingCardId(null);
     }
   };
 
@@ -210,7 +256,13 @@ const Deck: React.FC = () => {
     }
   };
 
- 
+  const handleTitleChange = (newTitle: string) => {
+    setTitle(newTitle);
+  };
+
+  const handleLearningMaterialLinkChange = (newLink: string) => {
+    setLearningMaterialLink(newLink);
+  };
 
   return (
     <>
@@ -238,6 +290,11 @@ const Deck: React.FC = () => {
           onSubmit={handleSubmit}
           onSelectedCorrectAnswer={setSelectedCorrectAnswer}
           onFlipSideChange={setFlipSide}
+          title={title}
+          learningMaterialLink={learningMaterialLink}
+          onTitleChange={handleTitleChange}
+          onLearningMaterialLinkChange={handleLearningMaterialLinkChange}
+          inEdit={editingCardId != ''}
         />
 
         <button className="save-btn" onClick={saveDeck}>
@@ -267,6 +324,7 @@ const Deck: React.FC = () => {
         <FlashcardList
           flashcards={flashcards}
           onDeleteCard={handleRemoveCard}
+          onEditCard={handleEditCard}
         />
       </div>
       <ToastContainer

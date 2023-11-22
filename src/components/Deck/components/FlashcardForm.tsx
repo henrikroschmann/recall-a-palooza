@@ -3,23 +3,30 @@ import { FlashcardTypes } from "../../../types";
 
 interface FlashcardFormProps {
   flashcardType: FlashcardTypes;
+  title: string;
   question: string;
   answers: string[];
   correctAnswerIndex: number | null;
   flipSide: string;
+  learningMaterialLink: string;
   onCardTypeChange: (selectedType: FlashcardTypes) => void;
   onQuestionChange: (question: string) => void;
   onAnswerChange: (index: number, answer: string) => void;
   onAddAnswer: () => void;
   onRemoveAnswer: (index: number) => void;
+  onTitleChange: (title: string) => void;
   onSubmit: (event: React.FormEvent) => void;
   onSelectedCorrectAnswer: (index: number) => void;
   onFlipSideChange: (flipSide: string) => void;
+  onLearningMaterialLinkChange: (link: string) => void;
+  inEdit: boolean;
 }
 
 const FlashcardForm: React.FC<FlashcardFormProps> = ({
   flashcardType,
   question,
+  title,
+  learningMaterialLink,
   answers,
   correctAnswerIndex,
   flipSide,
@@ -28,13 +35,26 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({
   onAnswerChange,
   onAddAnswer,
   onRemoveAnswer,
+  onTitleChange,
   onSubmit,
   onSelectedCorrectAnswer,
   onFlipSideChange,
+  onLearningMaterialLinkChange,
+  inEdit,
 }) => {
   return (
     <div className="flashcard-form-container">
       <form onSubmit={(e) => onSubmit(e)}>
+        {/* Title Field */}
+        <div className="form-group">
+          <label>Title</label>
+          <input
+            aria-label="title input"
+            type="text"
+            value={title}
+            onChange={(e) => onTitleChange(e.target.value)}
+          />
+        </div>
         {/* Card type selection */}
         <div className="card-type-switch">
           <label className="card-type-label">Card Type:</label>
@@ -132,7 +152,21 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({
           </div>
         )}
 
-        <button type="submit">Add Flashcard</button>
+        {flashcardType !== FlashcardTypes.Flip && ( // Assuming flip cards don't need a learning material link
+          <div className="form-group">
+            <label>Learning Material Link</label>
+            <input
+              aria-label="learning material"
+              type="url"
+              value={learningMaterialLink}
+              onChange={(e) => onLearningMaterialLinkChange(e.target.value)}
+            />
+          </div>
+        )}
+
+        <button type="submit">
+          {inEdit ? "Update Flashcard" : "Add Flashcard"}
+        </button>
       </form>
     </div>
   );
